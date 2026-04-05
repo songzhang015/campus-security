@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
-// TODO: Load animations, brand icon, input
 export default function Home() {
 	const router = useRouter();
 
