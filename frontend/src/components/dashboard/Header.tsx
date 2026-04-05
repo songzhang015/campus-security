@@ -34,14 +34,14 @@ export default function Header({ onNewIncidentClick }: HeaderProps) {
 				</h1>
 			</div>
 
-			<div className="flex-1 text-center font-medium text-slate-800">
+			<div className="flex-1 text-center font-medium text-slate-800 text-lg">
 				{currentTime || "Loading time..."}
 			</div>
 
 			<div className="flex-1 flex items-center justify-end gap-6">
 				<button
 					onClick={onNewIncidentClick}
-					className="flex items-center gap-2 bg-[#1a237e] hover:bg-[#121858] text-white px-4 py-2.5 rounded-md text-sm font-medium transition-colors"
+					className="flex items-center gap-2 bg-[#1a237e] hover:bg-[#121858] text-white px-4 py-2.5 rounded-md text-sm font-medium transition-colors cursor-pointer"
 				>
 					<Plus size={18} />
 					New Incident

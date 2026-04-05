@@ -28,7 +28,6 @@ export default function NewIncidentModal({
 
 	const handleSave = () => {
 		onSave({ description, location, priority, type, category });
-		// Reset form
 		setDescription("");
 		setLocation("");
 		setPriority("LOW");
@@ -43,7 +42,7 @@ export default function NewIncidentModal({
 					<h2 className="text-lg font-bold text-slate-800">New Incident</h2>
 					<button
 						onClick={onClose}
-						className="text-slate-400 hover:text-slate-700 text-2xl leading-none"
+						className="text-slate-400 hover:text-slate-700 text-2xl leading-none cursor-pointer"
 					>
 						&times;
 					</button>
@@ -138,14 +137,16 @@ export default function NewIncidentModal({
 				<div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
 					<button
 						onClick={onClose}
-						className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+						className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50
+						transition-colors cursor-pointer"
 					>
 						Cancel
 					</button>
 					<button
 						onClick={handleSave}
 						disabled={!description || !location}
-						className="px-4 py-2 text-sm font-semibold text-white bg-[#1a237e] rounded-md hover:bg-[#121858] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+						className="px-4 py-2 text-sm font-semibold text-white bg-[#1a237e] rounded-md hover:bg-[#121858] transition-colors
+						disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
 					>
 						Save Incident
 					</button>

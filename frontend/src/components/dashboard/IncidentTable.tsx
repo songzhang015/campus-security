@@ -29,6 +29,16 @@ interface IncidentTableProps {
 	onUpdate?: (updatedIncident: ExtendedIncident) => void;
 }
 
+// Helper to format timestamps nicely
+const formatTime = (isoString?: string) => {
+	if (!isoString) return "";
+	return new Date(isoString).toLocaleTimeString("en-US", {
+		hour: "numeric",
+		minute: "2-digit",
+		second: "2-digit",
+	});
+};
+
 export default function IncidentTable({
 	incidents,
 	onUpdate,
@@ -87,8 +97,6 @@ export default function IncidentTable({
 		switch (status) {
 			case "DISPATCHED":
 				return <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>;
-			case "EN ROUTE":
-				return <span className="w-2 h-2 rounded-full bg-[#1a237e] mr-2"></span>;
 			case "RESOLVED":
 				return (
 					<span className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span>
@@ -136,97 +144,137 @@ export default function IncidentTable({
 		setIsSheetOpen(false);
 	};
 
+	// --- Workflow Toggle Handlers ---
+	const handleDispatchToggle = (checked: boolean) => {
+		if (!activeIncident) return;
+
+		if (checked) {
+			setActiveIncident({
+				...activeIncident,
+				// Only change status to DISPATCHED if it's not already RESOLVED
+				status:
+					activeIncident.status === "RESOLVED" ? "RESOLVED" : "DISPATCHED",
+				dispatchedAt: activeIncident.dispatchedAt || new Date().toISOString(),
+			});
+		} else {
+			// If un-dispatching, reset back to pending (unless it's already resolved)
+			setActiveIncident({
+				...activeIncident,
+				status: activeIncident.status === "RESOLVED" ? "RESOLVED" : "PENDING",
+				dispatchedAt: undefined,
+				assigned: "",
+			});
+		}
+	};
+
+	const handleResolveToggle = (checked: boolean) => {
+		if (!activeIncident) return;
+
+		if (checked) {
+			setActiveIncident({
+				...activeIncident,
+				status: "RESOLVED",
+				resolvedAt: activeIncident.resolvedAt || new Date().toISOString(),
+			});
+		} else {
+			// If un-resolving, fall back to dispatched (if it has a dispatched time) or pending
+			setActiveIncident({
+				...activeIncident,
+				status: activeIncident.dispatchedAt ? "DISPATCHED" : "PENDING",
+				resolvedAt: undefined,
+			});
+		}
+	};
+
+	// Derived state for the checkboxes
+	const isDispatched = !!activeIncident?.dispatchedAt;
+	const isResolved = activeIncident?.status === "RESOLVED";
+
 	return (
 		<div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-			{/* Filters Bar */}
+			{/* Header */}
 			<div
 				ref={filtersRef}
-				className="px-6 py-4 border-b border-slate-100 flex gap-4 bg-slate-50/50 relative"
+				className="px-6 py-4 border-b border-slate-100 flex gap-4 bg-slate-50/50 relative justify-between"
 			>
-				{/* Status Dropdown */}
-				<div className="relative">
-					<button
-						onClick={() => toggleDropdown("status")}
-						className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded text-sm font-medium transition-colors"
-					>
-						Status: {selectedStatus}{" "}
-						<ChevronDown
-							size={14}
-							className={`transition-transform ${openDropdown === "status" ? "rotate-180" : ""}`}
-						/>
-					</button>
-
-					{openDropdown === "status" && (
-						<div className="absolute top-full left-0 mt-1 w-40 bg-white border border-slate-200 rounded-md shadow-lg z-10 py-1">
-							{["All", "Pending", "Dispatched", "Resolved"].map((option) => (
-								<button
-									key={option}
-									onClick={() => handleSelect(setSelectedStatus, option)}
-									className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-								>
-									{option}
-								</button>
-							))}
-						</div>
-					)}
+				<div className="flex items-center gap-4">
+					<h1 className=" font-semibold text-xl">Incident Feed</h1>
 				</div>
 
-				{/* Priority Dropdown */}
-				<div className="relative">
-					<button
-						onClick={() => toggleDropdown("priority")}
-						className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded text-sm font-medium transition-colors"
-					>
-						Priority: {selectedPriority}{" "}
-						<ChevronDown
-							size={14}
-							className={`transition-transform ${openDropdown === "priority" ? "rotate-180" : ""}`}
-						/>
-					</button>
+				{/* Filters */}
+				<div className="flex gap-4">
+					{" "}
+					{/* Status Dropdown */}
+					<div className="relative">
+						<button
+							onClick={() => toggleDropdown("status")}
+							className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded text-sm font-medium transition-colors cursor-pointer"
+						>
+							Status: {selectedStatus} <ChevronDown size={14} />
+						</button>
 
-					{openDropdown === "priority" && (
-						<div className="absolute top-full left-0 mt-1 w-40 bg-white border border-slate-200 rounded-md shadow-lg z-10 py-1">
-							{["All", "Critical", "High", "Medium", "Low"].map((option) => (
-								<button
-									key={option}
-									onClick={() => handleSelect(setSelectedPriority, option)}
-									className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-								>
-									{option}
-								</button>
-							))}
-						</div>
-					)}
-				</div>
-
-				{/* Time Dropdown */}
-				<div className="relative">
-					<button
-						onClick={() => toggleDropdown("time")}
-						className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded text-sm font-medium transition-colors"
-					>
-						Time: {selectedTime}{" "}
-						<ChevronDown
-							size={14}
-							className={`transition-transform ${openDropdown === "time" ? "rotate-180" : ""}`}
-						/>
-					</button>
-
-					{openDropdown === "time" && (
-						<div className="absolute top-full left-0 mt-1 w-48 bg-white border border-slate-200 rounded-md shadow-lg z-10 py-1">
-							{["Last 24h", "Last 7 Days", "Last 30 Days", "All Time"].map(
-								(option) => (
+						{openDropdown === "status" && (
+							<div className="absolute top-full left-0 mt-1 w-40 bg-white border border-slate-200 rounded-md shadow-lg z-10 py-1">
+								{["All", "Pending", "Dispatched", "Resolved"].map((option) => (
 									<button
 										key={option}
-										onClick={() => handleSelect(setSelectedTime, option)}
+										onClick={() => handleSelect(setSelectedStatus, option)}
 										className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
 									>
 										{option}
 									</button>
-								),
-							)}
-						</div>
-					)}
+								))}
+							</div>
+						)}
+					</div>
+					{/* Priority Dropdown */}
+					<div className="relative">
+						<button
+							onClick={() => toggleDropdown("priority")}
+							className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded text-sm font-medium transition-colors cursor-pointer"
+						>
+							Priority: {selectedPriority} <ChevronDown size={14} />
+						</button>
+
+						{openDropdown === "priority" && (
+							<div className="absolute top-full left-0 mt-1 w-40 bg-white border border-slate-200 rounded-md shadow-lg z-10 py-1">
+								{["All", "Critical", "High", "Medium", "Low"].map((option) => (
+									<button
+										key={option}
+										onClick={() => handleSelect(setSelectedPriority, option)}
+										className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+									>
+										{option}
+									</button>
+								))}
+							</div>
+						)}
+					</div>
+					{/* Time Dropdown */}
+					<div className="relative">
+						<button
+							onClick={() => toggleDropdown("time")}
+							className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded text-sm font-medium transition-colors cursor-pointer"
+						>
+							Time: {selectedTime} <ChevronDown size={14} />
+						</button>
+
+						{openDropdown === "time" && (
+							<div className="absolute top-full left-0 mt-1 w-48 bg-white border border-slate-200 rounded-md shadow-lg z-10 py-1">
+								{["Last 24h", "Last 7 Days", "Last 30 Days", "All Time"].map(
+									(option) => (
+										<button
+											key={option}
+											onClick={() => handleSelect(setSelectedTime, option)}
+											className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+										>
+											{option}
+										</button>
+									),
+								)}
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 
@@ -288,13 +336,9 @@ export default function IncidentTable({
 					<span>1 of 7 (23)</span>
 					<button
 						onClick={() => toggleDropdown("rows")}
-						className="flex items-center gap-1 font-medium hover:text-slate-900 transition-colors"
+						className="flex items-center gap-1 font-medium hover:text-slate-900 transition-colors cursor-pointer"
 					>
-						{rowsPerPage}{" "}
-						<ChevronDown
-							size={14}
-							className={`transition-transform ${openDropdown === "rows" ? "rotate-180" : ""}`}
-						/>
+						{rowsPerPage} <ChevronDown size={14} />
 					</button>
 
 					{openDropdown === "rows" && (
@@ -312,10 +356,10 @@ export default function IncidentTable({
 					)}
 				</div>
 				<div className="flex items-center gap-4">
-					<button className="p-1 hover:text-slate-900 transition-colors">
+					<button className="p-1 hover:text-slate-900 transition-colors cursor-pointer">
 						<ChevronLeft size={18} />
 					</button>
-					<button className="p-1 hover:text-slate-900 transition-colors">
+					<button className="p-1 hover:text-slate-900 transition-colors cursor-pointer">
 						<ChevronRight size={18} />
 					</button>
 				</div>
@@ -324,72 +368,65 @@ export default function IncidentTable({
 			{/* Editing Side Sheet */}
 			<Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
 				<SheetContent
-					className="w-full sm:max-w-md overflow-y-auto bg-white"
+					className="w-full sm:max-w-xl overflow-y-auto bg-white"
 					side="right"
 				>
 					<SheetHeader>
-						<SheetTitle>Edit Incident {activeIncident?.id}</SheetTitle>
+						<SheetTitle className="flex items-center gap-3">
+							Edit Incident {activeIncident?.id}
+							<span
+								className={`px-2 py-1 rounded text-[10px] font-bold tracking-wider ${getPriorityStyles(activeIncident?.priority || "LOW")}`}
+							>
+								{activeIncident?.status}
+							</span>
+						</SheetTitle>
 					</SheetHeader>
 
 					{activeIncident && (
-						<div className="flex flex-col gap-5 py-6">
-							<div className="grid grid-cols-2 gap-4">
-								{/* Priority */}
-								<div className="flex flex-col gap-1.5">
-									<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-										Priority
-									</label>
-									<select
-										value={activeIncident.priority}
-										onChange={(e) =>
-											handleSheetChange("priority", e.target.value)
-										}
-										className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
-									>
-										<option value="LOW">Low</option>
-										<option value="MEDIUM">Medium</option>
-										<option value="HIGH">High</option>
-										<option value="CRITICAL">Critical</option>
-									</select>
+						<div className="flex flex-col gap-6 p-6">
+							{/* SECTION 1: Core Details */}
+							<div className="space-y-4">
+								<h3 className="text-sm font-bold text-slate-800 border-b pb-2">
+									1. Incident Details
+								</h3>
+								<div className="grid grid-cols-2 gap-4">
+									<div className="flex flex-col gap-1.5">
+										<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+											Priority
+										</label>
+										<select
+											value={activeIncident.priority}
+											onChange={(e) =>
+												handleSheetChange("priority", e.target.value)
+											}
+											className="w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
+										>
+											<option value="LOW">Low</option>
+											<option value="MEDIUM">Medium</option>
+											<option value="HIGH">High</option>
+											<option value="CRITICAL">Critical</option>
+										</select>
+									</div>
+									<div className="flex flex-col gap-1.5">
+										<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+											Type
+										</label>
+										<select
+											value={activeIncident.type}
+											onChange={(e) =>
+												handleSheetChange("type", e.target.value)
+											}
+											className="w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
+										>
+											<option value="CAMPUS_SECURITY">Campus Security</option>
+											<option value="POLICE">Police</option>
+											<option value="MEDICAL">Medical</option>
+											<option value="MAINTENANCE">Maintenance</option>
+											<option value="RESIDENCE">Residence</option>
+										</select>
+									</div>
 								</div>
-								{/* Status */}
-								<div className="flex flex-col gap-1.5">
-									<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-										Status
-									</label>
-									<select
-										value={activeIncident.status}
-										onChange={(e) =>
-											handleSheetChange("status", e.target.value)
-										}
-										className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
-									>
-										<option value="PENDING">Open (Pending)</option>
-										<option value="DISPATCHED">Dispatched</option>
-										<option value="RESOLVED">Resolved</option>
-									</select>
-								</div>
-							</div>
 
-							<div className="grid grid-cols-2 gap-4">
-								{/* Type */}
-								<div className="flex flex-col gap-1.5">
-									<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-										Type
-									</label>
-									<select
-										value={activeIncident.type}
-										onChange={(e) => handleSheetChange("type", e.target.value)}
-										className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
-									>
-										<option value="CAMPUS_SECURITY">Campus Security</option>
-										<option value="POLICE">Police</option>
-										<option value="MEDICAL">Medical</option>
-										<option value="MAINTENANCE">Maintenance</option>
-										<option value="RESIDENCE">Residence</option>
-									</select>
-								</div>
-								{/* Category */}
 								<div className="flex flex-col gap-1.5">
 									<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
 										Category
@@ -399,7 +436,7 @@ export default function IncidentTable({
 										onChange={(e) =>
 											handleSheetChange("category", e.target.value)
 										}
-										className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
+										className="w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
 									>
 										<option value="NOISE_COMPLAINT">Noise Complaint</option>
 										<option value="TRESPASSING">Trespassing</option>
@@ -413,142 +450,161 @@ export default function IncidentTable({
 										<option value="OTHER">Other</option>
 									</select>
 								</div>
-							</div>
 
-							{/* Location */}
-							<div className="flex flex-col gap-1.5">
-								<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-									Location
-								</label>
-								<input
-									type="text"
-									value={activeIncident.location}
-									onChange={(e) =>
-										handleSheetChange("location", e.target.value)
-									}
-									className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
-								/>
-							</div>
-
-							{/* Short Description */}
-							<div className="flex flex-col gap-1.5">
-								<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-									Short Description
-								</label>
-								<input
-									type="text"
-									value={activeIncident.short_desc || ""}
-									onChange={(e) =>
-										handleSheetChange("short_desc", e.target.value)
-									}
-									className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
-								/>
-							</div>
-
-							{/* Description */}
-							<div className="flex flex-col gap-1.5">
-								<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-									Full Description
-								</label>
-								<textarea
-									value={activeIncident.description}
-									onChange={(e) =>
-										handleSheetChange("description", e.target.value)
-									}
-									rows={3}
-									className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none resize-y"
-								/>
-							</div>
-
-							<hr className="border-slate-100 my-2" />
-
-							{/* Assigned To */}
-							<div className="flex flex-col gap-1.5">
-								<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-									Assigned Unit(s)
-								</label>
-								<input
-									type="text"
-									placeholder="e.g. Unit 4, EMS"
-									value={activeIncident.assigned || ""}
-									onChange={(e) =>
-										handleSheetChange("assigned", e.target.value)
-									}
-									className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
-								/>
-							</div>
-
-							{/* Timestamps */}
-							<div className="grid grid-cols-2 gap-4">
 								<div className="flex flex-col gap-1.5">
 									<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-										Created At
+										Location
 									</label>
 									<input
-										type="datetime-local"
-										value={activeIncident.timestamp.slice(0, 16)} // slice to format for datetime-local
+										type="text"
+										value={activeIncident.location}
 										onChange={(e) =>
-											handleSheetChange(
-												"timestamp",
-												new Date(e.target.value).toISOString(),
-											)
+											handleSheetChange("location", e.target.value)
 										}
-										className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
+										className="w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
 									/>
 								</div>
+
 								<div className="flex flex-col gap-1.5">
 									<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-										Dispatched At
+										Short Description
 									</label>
 									<input
-										type="datetime-local"
-										value={activeIncident.dispatchedAt || ""}
+										type="text"
+										value={activeIncident.short_desc || ""}
 										onChange={(e) =>
-											handleSheetChange("dispatchedAt", e.target.value)
+											handleSheetChange("short_desc", e.target.value)
 										}
-										className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
+										className="w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
 									/>
 								</div>
+
 								<div className="flex flex-col gap-1.5">
 									<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-										Resolved At
+										Full Description
 									</label>
-									<input
-										type="datetime-local"
-										value={activeIncident.resolvedAt || ""}
+									<textarea
+										value={activeIncident.description}
 										onChange={(e) =>
-											handleSheetChange("resolvedAt", e.target.value)
+											handleSheetChange("description", e.target.value)
 										}
-										className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
+										rows={2}
+										className="w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none resize-y"
 									/>
 								</div>
 							</div>
 
-							<hr className="border-slate-100 my-2" />
+							{/* SECTION 2: Dispatch Workflow */}
+							<div className="space-y-4">
+								<h3 className="text-sm font-bold text-slate-800 border-b pb-2">
+									2. Action & Dispatch
+								</h3>
 
-							{/* Notes */}
-							<div className="flex flex-col gap-1.5">
-								<label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-									Dispatcher Notes
-								</label>
-								<textarea
-									placeholder="Add updates or context..."
-									value={activeIncident.notes || ""}
-									onChange={(e) => handleSheetChange("notes", e.target.value)}
-									rows={3}
-									className="w-full p-2.5 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none resize-y"
-								/>
+								{/* Dispatch Block */}
+								<div
+									className={`p-4 border rounded-lg transition-colors ${isDispatched ? "bg-[#1a237e]/5 border-[#1a237e]/20" : "bg-slate-50 border-slate-200"}`}
+								>
+									<label className="flex items-center gap-3 cursor-pointer mb-3">
+										<input
+											type="checkbox"
+											checked={isDispatched}
+											onChange={(e) => handleDispatchToggle(e.target.checked)}
+											className="w-4 h-4 text-[#1a237e] rounded border-slate-300 focus:ring-[#1a237e] cursor-pointer"
+										/>
+										<span className="font-semibold text-slate-800">
+											Unit Dispatched?
+										</span>
+									</label>
+
+									<div className="pl-7">
+										<input
+											type="text"
+											placeholder="Assign to (e.g. Unit 4)..."
+											disabled={!isDispatched}
+											value={activeIncident.assigned || ""}
+											onChange={(e) =>
+												handleSheetChange("assigned", e.target.value)
+											}
+											className="w-full p-2 text-sm border border-slate-200 rounded-md bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed focus:ring-2 focus:ring-[#1a237e] focus:outline-none transition-all"
+										/>
+									</div>
+								</div>
+
+								{/* Resolve Block */}
+								<div
+									className={`p-4 border rounded-lg transition-colors ${isResolved ? "bg-emerald-50 border-emerald-200" : "bg-slate-50 border-slate-200"}`}
+								>
+									<label className="flex items-center gap-3 cursor-pointer mb-3">
+										<input
+											type="checkbox"
+											checked={isResolved}
+											onChange={(e) => handleResolveToggle(e.target.checked)}
+											className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-600 cursor-pointer"
+										/>
+										<span className="font-semibold text-slate-800">
+											Incident Resolved?
+										</span>
+									</label>
+
+									<div className="pl-7">
+										<textarea
+											placeholder="Resolution or follow-up notes..."
+											disabled={!isResolved}
+											value={activeIncident.notes || ""}
+											onChange={(e) =>
+												handleSheetChange("notes", e.target.value)
+											}
+											rows={2}
+											className="w-full p-2 text-sm border border-slate-200 rounded-md bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed focus:ring-2 focus:emerald-600 focus:outline-none transition-all resize-y"
+										/>
+									</div>
+								</div>
+							</div>
+
+							{/* SECTION 3: Timeline / Logs */}
+							<div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-100 text-xs text-slate-500 space-y-2">
+								<div className="flex justify-between items-center mb-1">
+									<span className="uppercase tracking-wider font-semibold text-slate-600">
+										Incident Timeline
+									</span>
+								</div>
+								<div className="flex justify-between border-t border-slate-200 pt-2">
+									<span>Created:</span>
+									<span className="font-medium text-slate-700">
+										{formatTime(activeIncident.timestamp)}
+									</span>
+								</div>
+								{activeIncident.dispatchedAt && (
+									<div className="flex justify-between">
+										<span>Dispatched:</span>
+										<span className="font-medium text-slate-700">
+											{formatTime(activeIncident.dispatchedAt)}
+										</span>
+									</div>
+								)}
+								{activeIncident.resolvedAt && (
+									<div className="flex justify-between">
+										<span>Resolved:</span>
+										<span className="font-medium text-slate-700">
+											{formatTime(activeIncident.resolvedAt)}
+										</span>
+									</div>
+								)}
 							</div>
 						</div>
 					)}
 
 					<SheetFooter className="mt-4">
-						<Button variant="outline" onClick={() => setIsSheetOpen(false)}>
+						<Button
+							variant="outline"
+							onClick={() => setIsSheetOpen(false)}
+							className=" cursor-pointer"
+						>
 							Cancel
 						</Button>
 						<Button
 							onClick={handleSaveSheet}
-							className="bg-[#1a237e] hover:bg-[#121858]"
+							className="bg-[#1a237e] hover:bg-[#121858] cursor-pointer"
 						>
 							Save Changes
 						</Button>
