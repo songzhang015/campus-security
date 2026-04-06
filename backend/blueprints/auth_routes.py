@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
-from services.AuthService import auth_service
-from utils import build_response
+from services.auth_service import auth_service
+from helpers.utils import build_response
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -41,7 +41,6 @@ def login():
         return build_response(True, result, 200)
 
     except ValueError as e:
-        # e.g., "Incorrect password." -> Sent straight to the Next.js UI
         return build_response(False, str(e), 401)
     except RuntimeError as e:
         print(f"DB Error: {str(e)}")

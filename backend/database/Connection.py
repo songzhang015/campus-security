@@ -2,12 +2,10 @@ import os
 from pymongo import MongoClient
 import certifi
 from dotenv import load_dotenv
-import json
 
 load_dotenv()
 
 class Connection:
-
     def __init__(self):
         self.__connection = self.__init_conn()
         self.db = self.__connection["db"]

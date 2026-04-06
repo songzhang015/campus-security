@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { PriorityLevel, IncidentType, IncidentCategory } from "./types";
+import AutofillButton from "./AutofillButton";
 
 interface NewIncidentModalProps {
 	isOpen: boolean;
@@ -10,6 +11,7 @@ interface NewIncidentModalProps {
 		priority: PriorityLevel;
 		type: IncidentType;
 		category: IncidentCategory | "OTHER";
+		short_desc: string;
 	}) => void;
 }
 
@@ -23,16 +25,37 @@ export default function NewIncidentModal({
 	const [priority, setPriority] = useState<PriorityLevel>("LOW");
 	const [type, setType] = useState<IncidentType>("CAMPUS_SECURITY");
 	const [category, setCategory] = useState<IncidentCategory | "OTHER">("OTHER");
+	const [shortDesc, setShortDesc] = useState<string>("");
 
 	if (!isOpen) return null;
 
+	const handleAutofill = (result: {
+		priority: PriorityLevel;
+		type: IncidentType;
+		category: IncidentCategory | "OTHER";
+		short_desc: string;
+	}) => {
+		setPriority(result.priority);
+		setType(result.type);
+		setCategory(result.category);
+		setShortDesc(result.short_desc);
+	};
+
 	const handleSave = () => {
-		onSave({ description, location, priority, type, category });
+		onSave({
+			description,
+			location,
+			priority,
+			type,
+			category,
+			short_desc: shortDesc,
+		});
 		setDescription("");
 		setLocation("");
 		setPriority("LOW");
 		setType("CAMPUS_SECURITY");
 		setCategory("OTHER");
+		setShortDesc("");
 	};
 
 	return (
@@ -50,9 +73,15 @@ export default function NewIncidentModal({
 
 				<div className="p-6 space-y-4">
 					<div className="flex flex-col gap-1.5">
-						<label className="text-sm font-semibold text-slate-700">
-							Description
-						</label>
+						<div className="flex items-center justify-between">
+							<label className="text-sm font-semibold text-slate-700">
+								Description
+							</label>
+							<AutofillButton
+								description={description}
+								onAutofill={handleAutofill}
+							/>
+						</div>
 						<textarea
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
@@ -88,6 +117,7 @@ export default function NewIncidentModal({
 								<option value="LOW">Low</option>
 								<option value="MEDIUM">Medium</option>
 								<option value="HIGH">High</option>
+								<option value="CRITICAL">Critical</option>
 							</select>
 						</div>
 
@@ -128,7 +158,7 @@ export default function NewIncidentModal({
 							<option value="INJURY">Injury</option>
 							<option value="MISCONDUCT">Misconduct</option>
 							<option value="FIRE_ALARM">Fire Alarm</option>
-							<option value="PLUMBING ISSUE">Plumbing Issue</option>
+							<option value="PLUMBING_ISSUE">Plumbing Issue</option>
 							<option value="OTHER">Other</option>
 						</select>
 					</div>

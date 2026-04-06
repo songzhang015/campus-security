@@ -11,7 +11,7 @@ export type IncidentCategory =
 	| "INJURY"
 	| "MISCONDUCT"
 	| "FIRE_ALARM"
-	| "PLUMBING ISSUE"
+	| "PLUMBING_ISSUE"
 	| "OTHER";
 export type IncidentType =
 	| "CAMPUS_SECURITY"
@@ -21,6 +21,7 @@ export type IncidentType =
 	| "RESIDENCE";
 
 export interface Incident {
+	_id: string;
 	id: string;
 	priority: PriorityLevel;
 	type: IncidentType;
@@ -28,8 +29,12 @@ export interface Incident {
 	location: string;
 	status: IncidentStatus;
 	description: string;
-	timestamp: string;
+	created_at: string;
 	short_desc?: string;
+	assigned?: string | null;
+	dispatched_at?: string | null;
+	resolved_at?: string | null;
+	follow_up?: string | null;
 }
 
 export interface DashboardStats {
@@ -37,4 +42,11 @@ export interface DashboardStats {
 	dispatched: number;
 	untouched: number;
 	resolved: number;
+}
+
+export interface PaginationInfo {
+	total: number;
+	page: number;
+	limit: number;
+	total_pages: number;
 }

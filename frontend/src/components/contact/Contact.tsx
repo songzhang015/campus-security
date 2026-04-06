@@ -3,9 +3,42 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 export default function Contact() {
 	const router = useRouter();
+	const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+	const [errorMessage, setErrorMessage] = useState("");
+
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		setErrorMessage("");
+
+		const form = e.currentTarget;
+		const formData = new FormData(form);
+		const data = Object.fromEntries(formData.entries());
+
+		try {
+			const res = await fetch("/api/contact", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(data),
+			});
+
+			const result = await res.json();
+
+			if (result.success) {
+				setStatus("success");
+				form.reset();
+			} else {
+				setStatus("error");
+				setErrorMessage(result.response || "Failed to send inquiry.");
+			}
+		} catch (err) {
+			setStatus("error");
+			setErrorMessage("A network error occurred. Please try again.");
+		}
+	};
 
 	return (
 		<motion.div
@@ -29,7 +62,7 @@ export default function Contact() {
 					Contact
 				</h1>
 
-				<form className="flex flex-col gap-4 text-sm">
+				<form onSubmit={handleSubmit} className="flex flex-col gap-4 text-sm">
 					<div className="flex flex-col gap-1.5">
 						<label htmlFor="university" className="text-gray-700">
 							University
@@ -38,6 +71,7 @@ export default function Contact() {
 							type="text"
 							id="university"
 							name="university"
+							required
 							placeholder="University of Oregon"
 							className="w-full p-2.5 text-gray-900 bg-transparent border border-gray-300 rounded-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
 						/>
@@ -51,6 +85,7 @@ export default function Contact() {
 							type="text"
 							id="name"
 							name="name"
+							required
 							placeholder="John Doe"
 							className="w-full p-2.5 text-gray-900 bg-transparent border border-gray-300 rounded-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
 						/>
@@ -64,6 +99,7 @@ export default function Contact() {
 							type="email"
 							id="email"
 							name="email"
+							required
 							placeholder="johndoe@email.com"
 							className="w-full p-2.5 text-gray-900 bg-transparent border border-gray-300 rounded-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
 						/>
@@ -135,6 +171,18 @@ export default function Contact() {
 						Send Inquiry
 					</button>
 				</form>
+
+				{status === "success" && (
+					<div className="mt-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-sm text-sm text-center">
+						Inquiry received! Our team will contact you shortly.
+					</div>
+				)}
+
+				{status === "error" && (
+					<div className="mt-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-sm text-sm text-center">
+						{errorMessage}
+					</div>
+				)}
 			</div>
 		</motion.div>
 	);

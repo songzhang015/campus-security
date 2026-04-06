@@ -1,10 +1,10 @@
 from flask import Blueprint, jsonify, request
-from services.InquiriesService import inquiries_service
-from utils import build_response
+from services.inquiries_service import inquiries_service
+from helpers.utils import build_response
 
 inquiries_bp = Blueprint("inquiries", __name__)
 
-@inquiries_bp.route("/inquiry", methods=["POST"])
+@inquiries_bp.route("/", methods=["POST"])
 def create_inquiry():
     """
     POST /api/public/inquiry
@@ -12,10 +12,9 @@ def create_inquiry():
     """
     try:
         data = request.get_json()
+        res = inquiries_service.submit_inquiry(data)
         
-        success_message = inquiries_service.submit_inquiry(data)
-        
-        return build_response(True, success_message, 201)
+        return build_response(True, res, 201)
 
     except ValueError as e:
         return build_response(False, str(e), 400)

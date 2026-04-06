@@ -13,18 +13,45 @@ export default function Home() {
 	const [code, setCode] = useState(new Array(6).fill(""));
 	const [step, setStep] = useState<1 | 2>(1);
 
+	const [universityName, setUniversityName] = useState("");
+	const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+	const [codeError, setCodeError] = useState("");
+
+	const [password, setPassword] = useState("");
+	const [status, setStatus] = useState<"idle" | "error">("idle");
+	const [errorMessage, setErrorMessage] = useState("");
+
 	const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-	useEffect(() => {
-		const isComplete = code.every((digit) => digit !== "");
-		if (isComplete && step === 1) {
-			const timer = setTimeout(() => {
-				setStep(2);
-			}, 300);
+	const verifyAccessCode = async (fullCode: string) => {
+		if (isVerifyingCode) return;
 
-			return () => clearTimeout(timer);
+		setIsVerifyingCode(true);
+		setCodeError("");
+
+		try {
+			const res = await fetch("/api/auth/verify", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ accessCode: fullCode }),
+			});
+
+			const result = await res.json();
+
+			if (result.success) {
+				setUniversityName(result.response.name);
+				setTimeout(() => setStep(2), 300);
+			} else {
+				setCodeError(result.response || "Invalid Access Code");
+				setCode(new Array(6).fill(""));
+				inputRefs.current[0]?.focus();
+			}
+		} catch (err) {
+			setCodeError("Network error. Please try again.");
+		} finally {
+			setIsVerifyingCode(false);
 		}
-	}, [code, step]);
+	};
 
 	const handleChange = (
 		index: number,
@@ -39,6 +66,11 @@ export default function Home() {
 
 		if (value !== "" && index < 5 && inputRefs.current[index + 1]) {
 			inputRefs.current[index + 1]?.focus();
+		}
+
+		if (newCode.every((digit) => digit !== "")) {
+			inputRefs.current[index]?.blur();
+			verifyAccessCode(newCode.join(""));
 		}
 	};
 
@@ -59,6 +91,37 @@ export default function Home() {
 	const handleGoBack = () => {
 		setStep(1);
 		setCode(new Array(6).fill(""));
+		setPassword("");
+		setStatus("idle");
+		setErrorMessage("");
+		setUniversityName("");
+		setCodeError("");
+	};
+
+	const handleLogin = async () => {
+		setErrorMessage("");
+
+		const accessCode = code.join("");
+
+		try {
+			const res = await fetch("/api/auth/login", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ accessCode, password }),
+			});
+
+			const result = await res.json();
+
+			if (result.success) {
+				router.push("/dashboard");
+			} else {
+				setStatus("error");
+				setErrorMessage(result.response || "Invalid password.");
+			}
+		} catch (err) {
+			setStatus("error");
+			setErrorMessage("A network error occurred. Please try again.");
+		}
 	};
 
 	return (
@@ -109,6 +172,9 @@ export default function Home() {
 								Contact us
 							</Link>
 						</div>
+						<div className="h-6 mt-1 w-full flex items-center justify-center">
+							{codeError && <p className="text-red-600 text-sm">{codeError}</p>}
+						</div>
 					</motion.div>
 				) : (
 					<motion.div
@@ -128,23 +194,35 @@ export default function Home() {
 						</button>
 
 						<h1 className="text-xl font-bold text-gray-900 mt-1">
-							University Name
+							{universityName || "University Login"}
 						</h1>
 
 						<input
 							type="password"
 							placeholder="Password"
 							autoFocus
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === "Enter") handleLogin();
+							}}
 							className="w-full h-12 px-4 mt-2 text-lg text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
 						/>
 
 						<button
-							onClick={() => router.push("/dashboard")}
+							onClick={handleLogin}
 							className="w-full h-12 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition
                             cursor-pointer duration-300 hover:-translate-y-[3px]"
 						>
 							Sign In
 						</button>
+						<div className="h-6 mt-2 w-full flex items-start justify-center">
+							{status === "error" && (
+								<p className="text-red-600 text-sm text-center">
+									{errorMessage}
+								</p>
+							)}
+						</div>
 					</motion.div>
 				)}
 			</AnimatePresence>

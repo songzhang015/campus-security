@@ -1,0 +1,139 @@
+import os
+import json
+from anthropic import Anthropic, APIError
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class AIService:
+    def __init__(self):
+        self.api_key = os.getenv("CLAUDE_API_KEY")
+        self.autofill_model = os.getenv("CLAUDE_AUTOFILL_AI_MODEL")
+        self.drafter_model = os.getenv("CLAUDE_DRAFTER_AI_MODEL")
+        self.briefing_model = os.getenv("CLAUDE_BRIEFING_AI_MODEL")
+
+        if not self.api_key:
+            raise ValueError("CLAUDE_API_KEY is not set in the environment variables.")
+        
+        if not self.autofill_model:
+            raise ValueError("CLAUDE_AUTOFILL_AI_MODEL is not set in the environment variables.")
+        
+        if not self.drafter_model:
+            raise ValueError("CLAUDE_DRAFTER_AI_MODEL is not set in the environment variables.")
+        
+        if not self.briefing_model:
+            raise ValueError("CLAUDE_BRIEFING_AI_MODEL is not set in the environment variables.")
+
+        self.client = Anthropic(api_key=self.api_key)
+
+    def parse_incident_description(self, description):
+        """
+        Takes a raw string description and asks Claude to categorize it.
+        """
+        if not description or len(description.strip()) < 3:
+            raise ValueError("Description is too short to categorize.")
+
+        system_prompt = """
+        You are an expert emergency dispatch AI. Your job is to read a raw incident description 
+        and extract the priority, department, category, and a short 3-5 word (<32 chars) action-oriented title.
+        
+        You MUST respond ONLY with a valid JSON object matching exactly this schema. Do not include markdown formatting:
+        {
+            "priority": "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
+            "type": "CAMPUS_SECURITY" | "POLICE" | "MEDICAL" | "MAINTENANCE" | "RESIDENCE",
+            "category": "NOISE_COMPLAINT" | "TRESPASSING" | "THEFT" | "PROPERTY_DAMAGE" | "WEAPON" | "HARASSMENT" | "SUSPICIOUS_PERSON" | "INJURY" | "MISCONDUCT" | "FIRE_ALARM" | "PLUMBING_ISSUE" | "OTHER",
+            "short_desc": "Action oriented title here"
+        }
+        """
+
+        # Claude Prefill
+        response = self.client.messages.create(
+            model=self.autofill_model,
+            max_tokens=420,
+            temperature=0.1,
+            system=system_prompt,
+            messages=[
+                {"role": "user", "content": description},
+                {"role": "assistant", "content": "{"}
+            ]
+        )
+
+        # Claude Prefill
+        raw_json_string = "{" + response.content[0].text
+        
+        try:
+            parsed_data = json.loads(raw_json_string)
+            return parsed_data
+        except json.JSONDecodeError:
+            raise RuntimeError("Claude returned malformed JSON data.")
+
+    def generate_shift_handoff(self, incidents_data, hours):
+        """
+        Takes a list of incidents and asks Claude to summarize them into a shift report.
+        We return plain markdown here, no JSON needed.
+        """
+        if not incidents_data:
+            return "No incidents occurred during this shift timeframe."
+
+        # Convert the dictionary to a string to feed to the AI
+        raw_data_string = json.dumps(incidents_data)
+
+        system_prompt = f"""
+        You are a senior Campus Safety Dispatcher. Your shift is ending. 
+        Read the following JSON array of incidents from the last {hours} hours and write a concise, 
+        professional 3-paragraph shift handover report for the incoming dispatcher.
+        
+        Formatting rules:
+        - Use Markdown formatting.
+        - Start with a bold "Critical Unresolved Issues" section if anything is still PENDING or DISPATCHED.
+        - Summarize the resolved issues briefly.
+        - Do not include pleasantries. Be highly professional and operational.
+        """
+
+        response = self.client.messages.create(
+            model=self.briefing_model,
+            max_tokens=600, 
+            temperature=0.2, 
+            system=system_prompt,
+            messages=[
+                {"role": "user", "content": raw_data_string}
+            ]
+        )
+
+        return response.content[0].text
+
+    def draft_campus_alert(self, incident_details):
+        """
+        Takes details of a CRITICAL incident and generates SMS and Email drafts.
+        Strict JSON output.
+        """
+        system_prompt = """
+        You are a University Public Information Officer. A critical emergency is occurring.
+        You must draft a campus-wide alert based on the incident details provided.
+        
+        You MUST respond ONLY with a valid JSON object matching exactly this schema. Do not include markdown formatting:
+        {
+            "sms_draft": "160 characters maximum. Clear, calm, and actionable.",
+            "email_draft": "3 paragraphs maximum. Professional, detailed, with safety instructions."
+        }
+        """
+
+        response = self.client.messages.create(
+            model=self.drafter_model,
+            max_tokens=400,
+            temperature=0.1,
+            system=system_prompt,
+            messages=[
+                {"role": "user", "content": json.dumps(incident_details)},
+                {"role": "assistant", "content": "{"} # The Prefill Hack
+            ]
+        )
+
+        raw_json_string = "{" + response.content[0].text
+        
+        try:
+            return json.loads(raw_json_string)
+        except json.JSONDecodeError:
+            raise RuntimeError("Claude returned malformed JSON data for the alert.")
+        
+ai_service = AIService()
