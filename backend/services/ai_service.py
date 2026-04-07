@@ -46,7 +46,6 @@ class AIService:
         }
         """
 
-        # Claude Prefill
         response = self.client.messages.create(
             model=self.autofill_model,
             max_tokens=420,
@@ -54,12 +53,18 @@ class AIService:
             system=system_prompt,
             messages=[
                 {"role": "user", "content": description},
-                {"role": "assistant", "content": "{"}
             ]
         )
 
-        # Claude Prefill
-        raw_json_string = "{" + response.content[0].text
+        raw_response = response.content[0].text
+
+        start_idx = raw_response.find('{')
+        end_idx = raw_response.rfind('}')
+
+        if start_idx == -1 or end_idx == -1:
+             raise RuntimeError("Claude did not return a valid JSON object.")
+        
+        raw_json_string = raw_response[start_idx:end_idx+1]
         
         try:
             parsed_data = json.loads(raw_json_string)
@@ -75,7 +80,6 @@ class AIService:
         if not incidents_data:
             return "No incidents occurred during this shift timeframe."
 
-        # Convert the dictionary to a string to feed to the AI
         raw_data_string = json.dumps(incidents_data)
 
         system_prompt = f"""
@@ -87,7 +91,10 @@ class AIService:
         - Use Markdown formatting.
         - Start with a bold "Critical Unresolved Issues" section if anything is still PENDING or DISPATCHED.
         - Summarize the resolved issues briefly.
-        - Do not include pleasantries. Be highly professional and operational.
+        - Do not include pleasantries. Be highly professional and operational. No emojis.
+        - It's import that within paragraphs, line breaks are used for readability so it's not a chunk of text.
+        - Prefer bullets over dense text where appropriate.
+        - **Important** Do not use em dashes '—', replace them with single dashes '-' instead.
         """
 
         response = self.client.messages.create(
@@ -104,32 +111,41 @@ class AIService:
 
     def draft_campus_alert(self, incident_details):
         """
-        Takes details of a CRITICAL incident and generates SMS and Email drafts.
+        Takes details of a high priority / critical incident and generates SMS and Email drafts.
         Strict JSON output.
         """
         system_prompt = """
-        You are a University Public Information Officer. A critical emergency is occurring.
+        You are a University Public Information Officer. A high priority or critical emergency is occurring.
         You must draft a campus-wide alert based on the incident details provided.
+        Do not use em dashes '—', replace them with single dashes '-' instead.
         
         You MUST respond ONLY with a valid JSON object matching exactly this schema. Do not include markdown formatting:
         {
             "sms_draft": "160 characters maximum. Clear, calm, and actionable.",
-            "email_draft": "3 paragraphs maximum. Professional, detailed, with safety instructions."
+            "email_draft": "3 paragraphs maximum. Professional, concise, with safety instructions.
+            Do not overcomplicate with details, so people can easily read it."
         }
         """
 
         response = self.client.messages.create(
             model=self.drafter_model,
-            max_tokens=400,
+            max_tokens=600,
             temperature=0.1,
             system=system_prompt,
             messages=[
                 {"role": "user", "content": json.dumps(incident_details)},
-                {"role": "assistant", "content": "{"} # The Prefill Hack
             ]
         )
 
-        raw_json_string = "{" + response.content[0].text
+        raw_response = response.content[0].text
+
+        start_idx = raw_response.find('{')
+        end_idx = raw_response.rfind('}')
+        
+        if start_idx == -1 or end_idx == -1:
+             raise RuntimeError("Claude did not return a valid JSON object for the alert.")
+
+        raw_json_string = raw_response[start_idx:end_idx+1]
         
         try:
             return json.loads(raw_json_string)

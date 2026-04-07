@@ -5,6 +5,7 @@ import Header from "./Header";
 import StatCards from "./StatCards";
 import IncidentTable from "./IncidentTable";
 import NewIncidentModal from "./NewIncidentModal";
+import ShiftBriefingModal from "./ShiftBriefingModal";
 import {
 	Incident,
 	DashboardStats,
@@ -34,14 +35,37 @@ export default function Dashboard() {
 	const [selectedPriority, setSelectedPriority] = useState("All");
 	const [selectedTime, setSelectedTime] = useState("Last 24h");
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [orgName, setOrgName] = useState<string>("Loading Campus...");
+	const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
+
+	const fetchAccountData = async () => {
+		try {
+			const res = await fetch("/api/auth/me");
+			const data = await res.json();
+			if (data.success) {
+				setOrgName(data.response.organizationName);
+			}
+		} catch (err) {
+			console.error("Failed to fetch user data:", err);
+			setOrgName("Campus Security");
+		}
+	};
+
+	const fetchStats = async () => {
+		try {
+			const res = await fetch("/api/stats");
+			const data = await res.json();
+			if (data.success) {
+				setStats(data.response);
+			}
+		} catch (err) {
+			console.error("Failed to fetch stats:", err);
+		}
+	};
 
 	useEffect(() => {
-		setStats({
-			highCritical: 4,
-			dispatched: 12,
-			untouched: 7,
-			resolved: 42,
-		});
+		fetchStats();
+		fetchAccountData();
 	}, []);
 
 	useEffect(() => {
@@ -115,6 +139,7 @@ export default function Dashboard() {
 				inc._id === updatedIncident._id ? updatedIncident : inc,
 			),
 		);
+		fetchStats();
 	};
 
 	const handleSaveIncident = async (newIncidentData: {
@@ -142,16 +167,8 @@ export default function Dashboard() {
 			const created: Incident = data.response;
 			setIncidents((prev) => [created, ...prev]);
 
-			if (stats) {
-				setStats({
-					...stats,
-					untouched: stats.untouched + 1,
-					highCritical:
-						created.priority === "HIGH" || created.priority === "CRITICAL"
-							? stats.highCritical + 1
-							: stats.highCritical,
-				});
-			}
+			incidentCache.clear();
+			await fetchStats();
 
 			setIsModalOpen(false);
 		} catch (err) {
@@ -161,7 +178,11 @@ export default function Dashboard() {
 
 	return (
 		<div className="min-h-screen pb-12 font-sans text-slate-900 bg-[#f8f9fc]">
-			<Header onNewIncidentClick={() => setIsModalOpen(true)} />
+			<Header
+				onNewIncidentClick={() => setIsModalOpen(true)}
+				onGenerateBriefingClick={() => setIsBriefingModalOpen(true)}
+				organizationName={orgName}
+			/>
 
 			<main className="max-w-screen-2xl mx-auto px-6 py-8 space-y-8">
 				<div className="space-y-4">
@@ -188,6 +209,11 @@ export default function Dashboard() {
 				isOpen={isModalOpen}
 				onClose={() => setIsModalOpen(false)}
 				onSave={handleSaveIncident}
+			/>
+
+			<ShiftBriefingModal
+				isOpen={isBriefingModalOpen}
+				onClose={() => setIsBriefingModalOpen(false)}
 			/>
 
 			<div className="fixed bottom-6 right-6 z-50">

@@ -16,8 +16,9 @@ class StatsService:
 
         # 1. High / Critical Count ($in lets us check for multiple values at once)
         high_critical_count = self.repo.count_incidents({
-            "org_id": org_id, 
-            "priority": {"$in": ["HIGH", "CRITICAL"]}
+            "org_id": org_id,
+            "priority": {"$in": ["HIGH", "CRITICAL"]},
+            "status": {"$in": ["PENDING", "DISPATCHED"]}
         })
 
         # 2. Dispatched Count
@@ -26,7 +27,7 @@ class StatsService:
             "status": "DISPATCHED"
         })
 
-        # 3. Untouched (Pending) Count
+        # 3. Pending Count
         untouched_count = self.repo.count_incidents({
             "org_id": org_id, 
             "status": "PENDING"

@@ -68,17 +68,14 @@ def get_shift_handoff():
     try:
         org_id = request.org_id
         
-        # Grab the hours from the URL query parameter, default to 12
         hours_param = request.args.get("hours", 12)
         try:
             hours = int(hours_param)
         except ValueError:
             return build_response(False, "Hours parameter must be a valid integer.", 400)
 
-        # 1. Fetch the raw data from the DB
         recent_incidents = incidents_service.get_recent_incidents_for_handoff(org_id, hours)
         
-        # 2. Strip out unnecessary data to save AI tokens (and money)
         clean_data = [
             {
                 "id": inc.get("id"),
@@ -89,7 +86,6 @@ def get_shift_handoff():
             for inc in recent_incidents
         ]
 
-        # 3. Generate the report
         report_markdown = ai_service.generate_shift_handoff(clean_data, hours)
 
         return build_response(True, report_markdown, 200)

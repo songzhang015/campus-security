@@ -437,10 +437,7 @@ export default function IncidentTable({
 
 			{/* Editing Side Sheet */}
 			<Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-				<SheetContent
-					className="w-full sm:max-w-xl overflow-y-auto bg-white"
-					side="right"
-				>
+				<SheetContent className="overflow-y-auto">
 					<SheetHeader>
 						<SheetTitle className="flex items-center gap-3">
 							Edit Incident {activeIncident?.id}
@@ -663,19 +660,19 @@ export default function IncidentTable({
 						</div>
 					)}
 
-					<SheetFooter className="mt-4">
-						<Button
-							onClick={handleSaveSheet}
-							className="bg-[#1a237e] hover:bg-[#121858] cursor-pointer"
-						>
-							Save Changes
-						</Button>
+					<SheetFooter>
 						<Button
 							variant="outline"
 							onClick={() => setIsSheetOpen(false)}
 							className="cursor-pointer"
 						>
 							Cancel
+						</Button>
+						<Button
+							onClick={handleSaveSheet}
+							className="bg-[#1a237e] hover:bg-[#121858] cursor-pointer"
+						>
+							Save Changes
 						</Button>
 					</SheetFooter>
 				</SheetContent>

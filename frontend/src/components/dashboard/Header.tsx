@@ -1,13 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { User, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus } from "lucide-react";
+import UniversityLogo from "./UniversityLogo";
+import Image from "next/image";
+import GenerateBriefingButton from "./GenerateBriefingButton";
 
 interface HeaderProps {
 	onNewIncidentClick: () => void;
+	onGenerateBriefingClick: () => void;
+	organizationName?: string;
 }
 
-export default function Header({ onNewIncidentClick }: HeaderProps) {
+export default function Header({
+	onNewIncidentClick,
+	onGenerateBriefingClick,
+	organizationName = "Campus Security",
+}: HeaderProps) {
 	const [currentTime, setCurrentTime] = useState<string>("");
 
 	useEffect(() => {
@@ -28,9 +37,15 @@ export default function Header({ onNewIncidentClick }: HeaderProps) {
 
 	return (
 		<header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
-			<div className="flex-1">
+			<div className="flex-1 flex items-center gap-3">
+				<Image
+					src="/campus-security.png"
+					alt="Campus Security"
+					width={32}
+					height={32}
+				/>
 				<h1 className="text-xl font-bold tracking-widest text-[#1a237e]">
-					CAMPUS SAFETY
+					CAMPUS SECURITY
 				</h1>
 			</div>
 
@@ -39,6 +54,7 @@ export default function Header({ onNewIncidentClick }: HeaderProps) {
 			</div>
 
 			<div className="flex-1 flex items-center justify-end gap-6">
+				<GenerateBriefingButton onClick={onGenerateBriefingClick} />
 				<button
 					onClick={onNewIncidentClick}
 					className="flex items-center gap-2 bg-[#1a237e] hover:bg-[#121858] text-white px-4 py-2.5 rounded-md text-sm font-medium transition-colors cursor-pointer"
@@ -48,12 +64,10 @@ export default function Header({ onNewIncidentClick }: HeaderProps) {
 				</button>
 
 				<div className="flex items-center gap-3">
-					<span className="text-sm font-medium text-slate-700">
-						University of Oregon
+					<span className="text-md font-medium text-slate-700">
+						{organizationName}
 					</span>
-					<div className="w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center border border-slate-200">
-						<User size={18} className="text-slate-600" />
-					</div>
+					<UniversityLogo organizationName={organizationName} />
 				</div>
 			</div>
 		</header>

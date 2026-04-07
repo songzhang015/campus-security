@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { PriorityLevel, IncidentType, IncidentCategory } from "./types";
 import AutofillButton from "./AutofillButton";
+import DraftAlertButton from "./DraftAlertButton";
+import DraftAlertModal from "./DraftAlertModal";
 
 interface NewIncidentModalProps {
 	isOpen: boolean;
@@ -26,8 +28,12 @@ export default function NewIncidentModal({
 	const [type, setType] = useState<IncidentType>("CAMPUS_SECURITY");
 	const [category, setCategory] = useState<IncidentCategory | "OTHER">("OTHER");
 	const [shortDesc, setShortDesc] = useState<string>("");
+	const [isAlertPanelOpen, setIsAlertPanelOpen] = useState(false);
 
-	if (!isOpen) return null;
+	if (!isOpen) {
+		if (isAlertPanelOpen) setIsAlertPanelOpen(false);
+		return null;
+	}
 
 	const handleAutofill = (result: {
 		priority: PriorityLevel;
@@ -58,8 +64,10 @@ export default function NewIncidentModal({
 		setShortDesc("");
 	};
 
+	const isCritical = priority === "HIGH" || priority === "CRITICAL";
+
 	return (
-		<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+		<div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 gap-6">
 			<div className="bg-white w-full max-w-lg rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
 				<div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
 					<h2 className="text-lg font-bold text-slate-800">New Incident</h2>
@@ -164,24 +172,36 @@ export default function NewIncidentModal({
 					</div>
 				</div>
 
-				<div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
-					<button
-						onClick={onClose}
-						className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50
-						transition-colors cursor-pointer"
-					>
-						Cancel
-					</button>
-					<button
-						onClick={handleSave}
-						disabled={!description || !location}
-						className="px-4 py-2 text-sm font-semibold text-white bg-[#1a237e] rounded-md hover:bg-[#121858] transition-colors
-						disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-					>
-						Save Incident
-					</button>
+				<div className="px-6 py-4 border-t border-slate-100 flex justify-between items-center bg-slate-50">
+					<div>
+						{/* Only show if High/Critical and description/location aren't totally empty */}
+						{isCritical && description && location && (
+							<DraftAlertButton onClick={() => setIsAlertPanelOpen(true)} />
+						)}
+					</div>
+
+					<div className="flex gap-3">
+						<button
+							onClick={onClose}
+							className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer"
+						>
+							Cancel
+						</button>
+						<button
+							onClick={handleSave}
+							disabled={!description || !location}
+							className="px-4 py-2 text-sm font-semibold text-white bg-[#1a237e] rounded-md hover:bg-[#121858] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+						>
+							Save Incident
+						</button>
+					</div>
 				</div>
 			</div>
+			<DraftAlertModal
+				isOpen={isAlertPanelOpen}
+				onClose={() => setIsAlertPanelOpen(false)}
+				incidentData={{ description, location, priority, type, category }}
+			/>
 		</div>
 	);
 }

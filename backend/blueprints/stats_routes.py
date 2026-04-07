@@ -13,8 +13,7 @@ def get_dashboard_stats():
     Returns the 4 key metrics for the top of the frontend dashboard.
     """
     try:
-        # TODO: Replace with the actual org_id extracted from the JWT
-        org_id = "temp_hardcoded_org_id"
+        org_id = request.org_id
         
         stats = stats_service.get_dashboard_stats(org_id)
         
