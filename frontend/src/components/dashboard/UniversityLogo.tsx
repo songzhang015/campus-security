@@ -1,37 +1,30 @@
 import Image from "next/image";
 import { User } from "lucide-react";
+import { getOrgAssets } from "@/src/lib/orgConfig";
 
 interface UniversityLogoProps {
-	organizationName: string;
+    organizationName: string;
 }
 
 export default function UniversityLogo({
-	organizationName,
+    organizationName,
 }: UniversityLogoProps) {
-	const getLogoPath = (name: string): string | null => {
-		switch (name) {
-			case "University of Oregon":
-				return "/uo-logo.png";
-			case "Oregon State University":
-				return "/osu-logo.png";
-			default:
-				return null;
-		}
-	};
+    const orgDetails = getOrgAssets(organizationName);
 
-	const logoSrc = getLogoPath(organizationName);
+    if (!orgDetails.link) {
+        return <User size={18} className="text-slate-600" />;
+    }
 
-	if (!logoSrc) {
-		return <User size={18} className="text-slate-600" />;
-	}
-
-	return (
-		<Image
-			src={logoSrc}
-			alt={`${organizationName} Logo`}
-			width={32}
-			height={32}
-			className="object-contain"
-		/>
-	);
+    return (
+        <a href={orgDetails.link} target="_blank" rel="noopener noreferrer">
+            <Image
+                src={orgDetails.logoSrc}
+                alt={`${orgDetails.name} Logo`}
+                width={32}
+                height={32}
+                className="object-contain"
+                priority
+            />
+        </a>
+    );
 }
