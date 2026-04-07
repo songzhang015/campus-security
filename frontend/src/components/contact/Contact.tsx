@@ -1,18 +1,19 @@
 "use client";
 
-import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import ContactHeader from "./ContactHeader";
+import ContactForm from "./ContactForm";
+import ContactStatusMessage from "./ContactStatusMessage";
 
 export default function Contact() {
-    const router = useRouter();
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
     const [errorMessage, setErrorMessage] = useState("");
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setErrorMessage("");
+        setStatus("idle");
 
         const form = e.currentTarget;
         const formData = new FormData(form);
@@ -50,146 +51,14 @@ export default function Contact() {
             className="min-h-screen flex items-center justify-center bg-gray-50 p-4"
         >
             <div className="w-full max-w-lg bg-white border border-gray-300 rounded-md p-8">
-                <Image
-                    src="/campus-security.png"
-                    width={42}
-                    height={42}
-                    alt="Campus Security"
-                    onClick={() => router.push("/")}
-                    className="mx-auto mb-2 cursor-pointer transition duration-300 hover:-translate-y-0.5"
+                <ContactHeader />
+
+                <ContactForm onSubmit={handleSubmit} />
+
+                <ContactStatusMessage
+                    status={status}
+                    errorMessage={errorMessage}
                 />
-
-                <h1 className="text-xl text-center font-semibold text-gray-900 mb-6 border-b border-gray-200 pb-4">
-                    Contact
-                </h1>
-
-                <form
-                    onSubmit={handleSubmit}
-                    className="flex flex-col gap-4 text-sm"
-                >
-                    <div className="flex flex-col gap-1.5">
-                        <label htmlFor="university" className="text-gray-700">
-                            University
-                        </label>
-                        <input
-                            type="text"
-                            id="university"
-                            name="university"
-                            required
-                            placeholder="University of Oregon"
-                            className="w-full p-2.5 text-gray-900 bg-transparent border border-gray-300 rounded-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                        <label htmlFor="name" className="text-gray-700">
-                            Contact Name
-                        </label>
-                        <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            required
-                            placeholder="John Doe"
-                            className="w-full p-2.5 text-gray-900 bg-transparent border border-gray-300 rounded-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                        <label htmlFor="email" className="text-gray-700">
-                            Email Address
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            name="email"
-                            required
-                            placeholder="johndoe@email.com"
-                            className="w-full p-2.5 text-gray-900 bg-transparent border border-gray-300 rounded-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                        <label htmlFor="phone" className="text-gray-700">
-                            Phone Number
-                        </label>
-                        <input
-                            type="tel"
-                            id="phone"
-                            name="phone"
-                            placeholder="(123) 456-7890"
-                            className="w-full p-2.5 text-gray-900 bg-transparent border border-gray-300 rounded-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                        <label
-                            htmlFor="dispatchSystem"
-                            className="text-gray-700"
-                        >
-                            Current Dispatch System
-                        </label>
-                        <input
-                            type="text"
-                            id="dispatchSystem"
-                            name="dispatchSystem"
-                            placeholder="Excel, Pen & Paper, Older Software"
-                            className="w-full p-2.5 text-gray-900 bg-transparent border border-gray-300 rounded-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                        <label htmlFor="incidents" className="text-gray-700">
-                            Estimated Daily Incidents
-                        </label>
-                        <select
-                            id="incidents"
-                            name="incidents"
-                            defaultValue=""
-                            className="w-full p-2.5 text-gray-900 bg-transparent border border-gray-300 rounded-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors appearance-none"
-                        >
-                            <option value="" disabled>
-                                Select an estimate
-                            </option>
-                            <option value="<20">&lt; 20</option>
-                            <option value="20-50">20 - 50</option>
-                            <option value="51-100">51-100</option>
-                            <option value="100+">100+</option>
-                        </select>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                        <label htmlFor="comments" className="text-gray-700">
-                            Comments
-                        </label>
-                        <textarea
-                            id="comments"
-                            name="comments"
-                            rows={5}
-                            className="w-full p-2.5 text-gray-900 bg-transparent border border-gray-300 rounded-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors resize-y"
-                        ></textarea>
-                    </div>
-
-                    <button
-                        type="submit"
-                        className="mt-4 w-full py-3 px-4 bg-black text-white font-medium rounded-sm hover:bg-black/90 focus:outline-none
-						focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition cursor-pointer duration-300 hover:-translate-y-0.5"
-                    >
-                        Send Inquiry
-                    </button>
-                </form>
-
-                {status === "success" && (
-                    <div className="mt-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-sm text-sm text-center">
-                        Inquiry received! Our team will contact you shortly.
-                    </div>
-                )}
-
-                {status === "error" && (
-                    <div className="mt-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-sm text-sm text-center">
-                        {errorMessage}
-                    </div>
-                )}
             </div>
         </motion.div>
     );
