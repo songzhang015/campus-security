@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 from helpers.utils import build_response
 from blueprints.ai_routes import ai_bp
 from blueprints.auth_routes import auth_bp
@@ -8,6 +9,14 @@ from blueprints.stats_routes import stats_bp
 import os
 
 app = Flask(__name__)
+
+CORS(
+    app,
+    supports_credentials=True,
+    origins=[
+        "https://campus-security-2wjnm2ns6-song-zhangs-projects.vercel.app",
+    ],
+)
 
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(incidents_bp, url_prefix="/api/incidents")
