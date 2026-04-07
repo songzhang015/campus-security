@@ -35,7 +35,6 @@ def get_incidents():
         print(f"Server Error fetching incidents: {str(e)}")
         return build_response(False, "An unexpected server error occurred.", 500)
 
-
 @incidents_bp.route("/", methods=["POST"])
 @token_required
 def create_incident():
@@ -56,7 +55,6 @@ def create_incident():
         print(f"Server Error creating incident: {str(e)}")
         return build_response(False, "An unexpected server error occurred.", 500)
 
-
 @incidents_bp.route("/<incident_id>", methods=["PATCH"])
 @token_required
 def update_incident(incident_id):
@@ -75,4 +73,23 @@ def update_incident(incident_id):
         return build_response(False, "A database error occurred.", 500)
     except Exception as e:
         print(f"Server Error updating incident: {str(e)}")
+        return build_response(False, "An unexpected server error occurred.", 500)
+    
+@incidents_bp.route("/<incident_id>", methods=["DELETE"])
+@token_required
+def delete_incident(incident_id):
+    """DELETE /api/incidents/<incident_id>"""
+    try:
+        org_id = request.org_id
+
+        deleted = incidents_service.delete_incident(incident_id, org_id)
+        return build_response(True, deleted, 200)
+
+    except ValueError as e:
+        return build_response(False, str(e), 400)
+    except RuntimeError as e:
+        print(f"DB Error deleting incident: {str(e)}")
+        return build_response(False, "A database error occurred.", 500)
+    except Exception as e:
+        print(f"Server Error deleting incident: {str(e)}")
         return build_response(False, "An unexpected server error occurred.", 500)

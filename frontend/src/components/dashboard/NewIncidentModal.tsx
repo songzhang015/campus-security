@@ -4,6 +4,7 @@ import AutofillButton from "./AutofillButton";
 import DraftAlertButton from "./DraftAlertButton";
 import DraftAlertModal from "./DraftAlertModal";
 import Autocomplete from "react-google-autocomplete";
+import { Button } from "./button";
 
 interface NewIncidentModalProps {
     isOpen: boolean;
@@ -81,7 +82,7 @@ export default function NewIncidentModal({
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 gap-6">
-            <div className="bg-white w-full max-w-lg rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-white w-full max-w-lg rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                 <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                     <h2 className="text-lg font-bold text-slate-800">
                         New Incident
@@ -222,19 +223,20 @@ export default function NewIncidentModal({
                     </div>
 
                     <div className="flex gap-3">
-                        <button
+                        <Button
+                            variant="outline"
                             onClick={handleClose}
-                            className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer"
+                            className="cursor-pointer"
                         >
                             Cancel
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                             onClick={handleSave}
                             disabled={!description || !location}
-                            className="px-4 py-2 text-sm font-semibold text-white bg-[#1a237e] rounded-md hover:bg-[#121858] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                            className="cursor-pointer"
                         >
                             Save Incident
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

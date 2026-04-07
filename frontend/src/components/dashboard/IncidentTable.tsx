@@ -10,6 +10,7 @@ import {
     SheetFooter,
 } from "./sheet";
 import Autocomplete from "react-google-autocomplete";
+import DeleteEntryButton from "./DeleteEntryButton";
 
 interface IncidentTableProps {
     incidents: Incident[];
@@ -21,6 +22,7 @@ interface IncidentTableProps {
     onPageChange: (page: number) => void;
     onLimitChange: (limit: number) => void;
     onUpdate?: (updatedIncident: Incident) => void;
+    onDelete?: (deletedIncidentId: string) => void;
 }
 
 // Helper to format timestamps nicely
@@ -43,6 +45,7 @@ export default function IncidentTable({
     onPageChange,
     onLimitChange,
     onUpdate,
+    onDelete,
 }: IncidentTableProps) {
     const [pageInput, setPageInput] = useState<string>(String(pagination.page));
 
@@ -73,16 +76,12 @@ export default function IncidentTable({
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [activeIncident, setActiveIncident] = useState<Incident | null>(null);
 
-    // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as Node;
-            if (
-                filtersRef.current &&
-                !filtersRef.current.contains(target) &&
-                paginationRef.current &&
-                !paginationRef.current.contains(target)
-            ) {
+            const inFilters = filtersRef.current?.contains(target);
+            const inPagination = paginationRef.current?.contains(target);
+            if (!inFilters && !inPagination) {
                 setOpenDropdown(null);
             }
         };
@@ -220,7 +219,7 @@ export default function IncidentTable({
             {/* Header */}
             <div
                 ref={filtersRef}
-                className="px-6 py-4 border-b border-slate-100 flex gap-4 bg-slate-50/50 relative justify-between"
+                className="px-6 py-4 border-b border-slate-100 flex gap-4 bg-slate-50/50 transition relative justify-between"
             >
                 <div className="flex items-center gap-4">
                     <h1 className=" font-semibold text-xl">Incident Feed</h1>
@@ -518,7 +517,7 @@ export default function IncidentTable({
                     onEscapeKeyDown={(e) => e.preventDefault()}
                 >
                     <SheetHeader>
-                        <SheetTitle className="flex items-center gap-3">
+                        <SheetTitle className="flex items-center gap-3 px-2">
                             Edit Incident {activeIncident?.id}
                         </SheetTitle>
                     </SheetHeader>
@@ -654,7 +653,7 @@ export default function IncidentTable({
                                         options={{
                                             types: ["address"],
                                         }}
-                                        className="w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
+                                        className="transition-all duration-300 w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
                                         placeholder="1520 University St, Floor 21..."
                                     />
                                 </div>
@@ -672,7 +671,7 @@ export default function IncidentTable({
                                             )
                                         }
                                         rows={2}
-                                        className="w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none resize-y"
+                                        className="transition-all duration-300 w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none resize-y"
                                     />
                                 </div>
                                 <div className="flex flex-col gap-1.5">
@@ -688,7 +687,7 @@ export default function IncidentTable({
                                                 e.target.value,
                                             )
                                         }
-                                        className="w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none"
+                                        className="w-full p-2 text-sm border border-slate-200 rounded-md bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#1a237e] focus:outline-none transition-all duration-300"
                                     />
                                 </div>
                             </div>
@@ -701,7 +700,7 @@ export default function IncidentTable({
 
                                 {/* Dispatch Block */}
                                 <div
-                                    className={`p-4 border rounded-lg transition-colors ${isDispatched ? "bg-[#1a237e]/5 border-[#1a237e]/20" : "bg-slate-50 border-slate-200"}`}
+                                    className={`p-4 border rounded-lg transition-all duration-400 ease-out ${isDispatched ? "bg-[#1a237e]/5 border-[#1a237e]/20" : "bg-slate-50 border-slate-200"}`}
                                 >
                                     <label className="flex items-center gap-3 cursor-pointer mb-3">
                                         <input
@@ -733,14 +732,14 @@ export default function IncidentTable({
                                                     e.target.value,
                                                 )
                                             }
-                                            className="w-full p-2 text-sm border border-slate-200 rounded-md bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed focus:ring-2 focus:ring-[#1a237e] focus:outline-none transition-all"
+                                            className="w-full p-2 text-sm border border-slate-200 rounded-md bg-white text-slate-900 placeholder:text-slate-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:placeholder:text-slate-400 disabled:cursor-not-allowed focus:ring-2 focus:ring-[#1a237e] focus:outline-none transition-all duration-300 ease-out"
                                         />
                                     </div>
                                 </div>
 
                                 {/* Resolve Block */}
                                 <div
-                                    className={`p-4 border rounded-lg transition-colors ${isResolved ? "bg-[#1a237e]/5 border-[#1a237e]/20" : "bg-slate-50 border-slate-200"}`}
+                                    className={`p-4 border rounded-lg transition-all duration-400 ease-out ${isResolved ? "bg-[#1a237e]/5 border-[#1a237e]/20" : "bg-slate-50 border-slate-200"}`}
                                 >
                                     <label className="flex items-center gap-3 cursor-pointer mb-3">
                                         <input
@@ -772,7 +771,7 @@ export default function IncidentTable({
                                                 )
                                             }
                                             rows={2}
-                                            className="w-full p-2 text-sm border border-slate-200 rounded-md bg-white disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed focus:ring-2 focus:outline-none transition-all resize-y"
+                                            className="w-full p-2 text-sm border border-slate-200 rounded-md bg-white text-slate-900 placeholder:text-slate-500 disabled:bg-slate-100 disabled:text-slate-400 disabled:placeholder:text-slate-400 disabled:cursor-not-allowed focus:ring-2 focus:ring-[#1a237e] focus:outline-none transition-all duration-300 ease-out"
                                         />
                                     </div>
                                 </div>
@@ -815,20 +814,35 @@ export default function IncidentTable({
                         </div>
                     )}
 
-                    <SheetFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsSheetOpen(false)}
-                            className="cursor-pointer"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            onClick={handleSaveSheet}
-                            className="bg-[#1a237e] hover:bg-[#121858] cursor-pointer"
-                        >
-                            Save Changes
-                        </Button>
+                    <SheetFooter className="flex justify-between w-full px-6">
+                        <div>
+                            {activeIncident && (
+                                <DeleteEntryButton
+                                    incidentId={activeIncident._id}
+                                    onDeleted={() => {
+                                        setIsSheetOpen(false);
+                                        onDelete?.(activeIncident._id);
+                                    }}
+                                />
+                            )}
+                        </div>
+
+                        <div className="flex gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsSheetOpen(false)}
+                                className="cursor-pointer"
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                onClick={handleSaveSheet}
+                                className="cursor-pointer"
+                            >
+                                Save Changes
+                            </Button>
+                        </div>
                     </SheetFooter>
                 </SheetContent>
             </Sheet>

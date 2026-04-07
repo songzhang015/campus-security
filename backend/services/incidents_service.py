@@ -107,4 +107,11 @@ class IncidentsService:
         
         # We set a high limit (e.g., 200) to ensure we get everything in that shift
         return self.repo.get_incidents(query, skip=0, limit=200)
+   
+    def delete_incident(self, incident_id, org_id):
+        if not incident_id:
+            raise ValueError("Incident ID is required.")
+
+        return self.repo.delete_incident(incident_id, org_id)
+
 incidents_service = IncidentsService()

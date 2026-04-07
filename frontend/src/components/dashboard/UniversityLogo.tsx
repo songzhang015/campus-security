@@ -22,7 +22,7 @@ export default function UniversityLogo({
                 alt={`${orgDetails.name} Logo`}
                 width={32}
                 height={32}
-                className="object-contain"
+                className="object-contain mb-[3px] hover:-translate-y-0.5 transition duration-300"
                 priority
             />
         </a>

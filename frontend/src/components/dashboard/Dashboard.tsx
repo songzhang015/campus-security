@@ -14,6 +14,7 @@ import {
     IncidentCategory,
 } from "./types";
 import SignOutButton from "./SignOutButton";
+import { incidentCache, statsCache, setStatsCache } from "./dashboardCache";
 
 interface CacheEntry {
     incidents: Incident[];
@@ -21,7 +22,6 @@ interface CacheEntry {
     fetchedAt: number;
 }
 
-const incidentCache = new Map<string, CacheEntry>();
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
 export default function Dashboard() {
@@ -35,28 +35,28 @@ export default function Dashboard() {
     const [selectedPriority, setSelectedPriority] = useState("All");
     const [selectedTime, setSelectedTime] = useState("Last 24h");
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [orgName, setOrgName] = useState<string>("Loading Campus...");
+    const [orgName, setOrgName] = useState<string>("");
     const [isBriefingModalOpen, setIsBriefingModalOpen] = useState(false);
 
-    const fetchAccountData = async () => {
-        try {
-            const res = await fetch("/api/auth/me");
-            const data = await res.json();
-            if (data.success) {
-                setOrgName(data.response.organizationName);
-            }
-        } catch (err) {
-            console.error("Failed to fetch user data:", err);
-            setOrgName("Campus Security");
+    const fetchStats = async (force = false) => {
+        if (
+            !force &&
+            statsCache &&
+            Date.now() - statsCache.fetchedAt < CACHE_TTL_MS
+        ) {
+            setStats(statsCache.data);
+            return;
         }
-    };
 
-    const fetchStats = async () => {
         try {
             const res = await fetch("/api/stats");
             const data = await res.json();
             if (data.success) {
                 setStats(data.response);
+                setStatsCache({
+                    data: data.response,
+                    fetchedAt: Date.now(),
+                });
             }
         } catch (err) {
             console.error("Failed to fetch stats:", err);
@@ -64,8 +64,22 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
-        fetchStats();
-        fetchAccountData();
+        async function loadInitialData() {
+            try {
+                const [authRes] = await Promise.all([
+                    fetch("/api/auth/me"),
+                    fetchStats(),
+                ]);
+
+                const authData = await authRes.json();
+                if (authData.success) {
+                    setOrgName(authData.response.organizationName);
+                }
+            } catch (err) {
+                console.error("Initialization error:", err);
+            }
+        }
+        loadInitialData();
     }, []);
 
     useEffect(() => {
@@ -139,7 +153,7 @@ export default function Dashboard() {
                 inc._id === updatedIncident._id ? updatedIncident : inc,
             ),
         );
-        fetchStats();
+        fetchStats(true);
     };
 
     const handleSaveIncident = async (newIncidentData: {
@@ -168,7 +182,7 @@ export default function Dashboard() {
             setIncidents((prev) => [created, ...prev]);
 
             incidentCache.clear();
-            await fetchStats();
+            await fetchStats(true);
 
             setIsModalOpen(false);
         } catch (err) {
@@ -176,13 +190,23 @@ export default function Dashboard() {
         }
     };
 
+    const handleDeleteIncident = (deletedIncidentId: string) => {
+        incidentCache.clear();
+        setIncidents((prev) =>
+            prev.filter((inc) => inc._id !== deletedIncidentId),
+        );
+        fetchStats(true);
+    };
+
     return (
         <div className="min-h-screen pb-12 font-sans text-slate-900 bg-[#f8f9fc]">
-            <Header
-                onNewIncidentClick={() => setIsModalOpen(true)}
-                onGenerateBriefingClick={() => setIsBriefingModalOpen(true)}
-                organizationName={orgName}
-            />
+            {orgName && (
+                <Header
+                    onNewIncidentClick={() => setIsModalOpen(true)}
+                    onGenerateBriefingClick={() => setIsBriefingModalOpen(true)}
+                    organizationName={orgName}
+                />
+            )}
 
             <main className="max-w-screen-2xl mx-auto px-6 py-8 space-y-8">
                 <div className="space-y-4">
@@ -199,6 +223,7 @@ export default function Dashboard() {
                     onPageChange={handlePageChange}
                     onLimitChange={handleLimitChange}
                     onUpdate={handleUpdateIncident}
+                    onDelete={handleDeleteIncident}
                 />
             </main>
 

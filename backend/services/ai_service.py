@@ -27,9 +27,6 @@ class AIService:
         self.client = Anthropic(api_key=self.api_key)
 
     def parse_incident_description(self, description):
-        """
-        Takes a raw string description and asks Claude to categorize it.
-        """
         if not description or len(description.strip()) < 3:
             raise ValueError("Description is too short to categorize.")
 
@@ -73,10 +70,6 @@ class AIService:
             raise RuntimeError("Claude returned malformed JSON data.")
 
     def generate_shift_handoff(self, incidents_data, hours):
-        """
-        Takes a list of incidents and asks Claude to summarize them into a shift report.
-        We return plain markdown here, no JSON needed.
-        """
         if not incidents_data:
             return "No incidents occurred during this shift timeframe."
 
@@ -110,10 +103,6 @@ class AIService:
         return response.content[0].text
 
     def draft_campus_alert(self, incident_details):
-        """
-        Takes details of a high priority / critical incident and generates SMS and Email drafts.
-        Strict JSON output.
-        """
         system_prompt = """
         You are a University Public Information Officer. A high priority or critical emergency is occurring.
         You must draft a campus-wide alert based on the incident details provided.

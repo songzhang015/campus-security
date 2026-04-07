@@ -48,3 +48,24 @@ class IncidentsRepository(Connection):
             return result
         except PyMongoError as e:
             raise RuntimeError(f"Database error updating incident: {str(e)}")
+        
+    def delete_incident(self, incident_id, org_id):
+        try:
+            object_id = ObjectId(incident_id)
+        except Exception:
+            raise ValueError("Invalid incident ID.")
+
+        try:
+            result = self.incidents_collection.find_one_and_delete({
+                "_id": object_id,
+                "org_id": org_id,
+            })
+
+            if not result:
+                raise ValueError("Incident not found.")
+
+            result["_id"] = str(result["_id"])
+            return result
+
+        except PyMongoError as e:
+            raise RuntimeError(f"Database error deleting incident: {str(e)}")

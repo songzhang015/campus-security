@@ -32,14 +32,12 @@ const T_PAUSE_BEFORE_EXIT = 500;
 const T_FINAL_FADE = 500;
 
 const OFF_WHITE = "#f2f2f2";
-const BRAND_COLOR = "#00702F";
 const GRAY_START = "#dbdbdb";
 
 function sleep(ms: number) {
     return new Promise<void>((r) => setTimeout(r, ms));
 }
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 type Phase =
     | "gray"
     | "offwhite"
@@ -66,7 +64,6 @@ export default function IntroAnimation({
     const [visibleLetters, setVisible] = useState(-1);
     const [showSpreadContent, setShowSpreadContent] = useState(false);
     const [showWelcome, setShowWelcome] = useState(false);
-    const [showDashboard, setShowDashboard] = useState(false);
 
     const overlayControls = useAnimationControls();
 
@@ -109,7 +106,7 @@ export default function IntroAnimation({
 
             // 7. Green line cuts top → bottom
             setPhase("cut");
-            await sleep(T_CUT_DURATION); // Wait exactly the cut duration
+            await sleep(T_CUT_DURATION);
 
             // 8. Spread left + right from center
             setPhase("spread");
@@ -131,9 +128,8 @@ export default function IntroAnimation({
             setShowWelcome(false);
             await sleep(T_WELCOME_FADE_OUT + T_PAUSE_BEFORE_EXIT);
 
-            // 12. Reveal dashboard behind overlay, fade white overlay out
+            // 12. Reveal dashboard behind overlay, fade overlay out
             setPhase("exiting");
-            setShowDashboard(true);
             await sleep(30);
             overlayControls.start({
                 opacity: 0,
@@ -144,11 +140,10 @@ export default function IntroAnimation({
             });
             await sleep(T_FINAL_FADE + 100);
 
+            // 13. Done — signal dashboard to fade in
             setPhase("done");
         })();
     }, [letters.length, overlayControls]);
-
-    if (phase === "done") return <>{children}</>;
 
     const isPreCut = [
         "gray",
@@ -166,11 +161,11 @@ export default function IntroAnimation({
     const isSpread = ["spread", "reveal", "welcome"].includes(phase);
 
     return (
-        <div className="fixed inset-0 z-[9999]">
+        <div
+            className={phase === "done" ? "relative" : "fixed inset-0 z-[9999]"}
+        >
             {/* Dashboard renders beneath everything once we're exiting */}
-            {showDashboard && (
-                <div className="absolute inset-0 z-0">{children}</div>
-            )}
+            <div className="absolute inset-0 z-0">{children}</div>
 
             {/* ── Layer 10: Animated Background ─────────────────────────────── */}
             <AnimatePresence>
@@ -284,7 +279,7 @@ export default function IntroAnimation({
                             </div>
                         </motion.div>
 
-                        {/* ── University Fade In (Sits on top of the green line) ── */}
+                        {/* ── University Fade In ── */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{
@@ -302,7 +297,6 @@ export default function IntroAnimation({
                             className="absolute flex flex-col items-center justify-center pointer-events-none"
                             style={{ gap: "1.25rem" }}
                         >
-                            {/* CLEAN LOGO - NO CSS FILTERS */}
                             <div className="w-14 h-14 relative">
                                 <Image
                                     src={orgLogoSrc}
