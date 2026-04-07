@@ -132,7 +132,7 @@ export default function NewIncidentModal({
                                 types: ["address"],
                             }}
                             className="w-full p-2.5 text-sm text-slate-900 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#1a237e]"
-                            placeholder="e.g. North Hall, Room 102"
+                            placeholder="1520 University St, Floor 21..."
                         />
                     </div>
 

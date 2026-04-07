@@ -56,7 +56,7 @@ export default function Header({
                 {currentTime || "Loading time..."}
             </div>
 
-            <div className="flex-1 flex items-center justify-end gap-6">
+            <div className="flex-1 min-w-0 flex items-center justify-end gap-4">
                 <GenerateBriefingButton onClick={onGenerateBriefingClick} />
                 <button
                     onClick={onNewIncidentClick}
@@ -69,7 +69,7 @@ export default function Header({
                 </button>
 
                 <div className="flex items-center gap-3">
-                    <span className="text-md font-medium text-slate-700">
+                    <span className="text-md font-medium text-slate-700 whitespace-nowrap">
                         {organizationName}
                     </span>
                     <UniversityLogo organizationName={organizationName} />
