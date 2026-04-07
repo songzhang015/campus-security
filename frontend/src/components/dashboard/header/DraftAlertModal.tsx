@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Copy, Check, Loader2, X, AlertTriangle } from "lucide-react";
-import { PriorityLevel, IncidentType, IncidentCategory } from "./types";
+import { PriorityLevel, IncidentType, IncidentCategory } from "../types";
 
 interface DraftAlertModalProps {
     isOpen: boolean;
@@ -48,6 +48,7 @@ export default function DraftAlertModal({
                     setError(data.response || "Failed to generate drafts.");
                 }
             } catch (err) {
+                console.log(err);
                 setError("Network error generating alert.");
             } finally {
                 setIsLoading(false);
@@ -55,7 +56,7 @@ export default function DraftAlertModal({
         };
 
         fetchDrafts();
-    }, [isOpen]);
+    }, [isOpen, incidentData]);
 
     const handleCopy = async (text: string, type: "sms" | "email") => {
         await navigator.clipboard.writeText(text);

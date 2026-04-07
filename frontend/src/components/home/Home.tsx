@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -47,6 +47,7 @@ export default function Home() {
                 inputRefs.current[0]?.focus();
             }
         } catch (err) {
+            console.log(err);
             setCodeError("Network error. Please try again.");
         } finally {
             setIsVerifyingCode(false);
@@ -119,6 +120,7 @@ export default function Home() {
                 setErrorMessage(result.response || "Invalid password.");
             }
         } catch (err) {
+            console.log(err);
             setStatus("error");
             setErrorMessage("A network error occurred. Please try again.");
         }

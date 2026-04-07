@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
-import UniversityLogo from "./UniversityLogo";
+import UniversityLogo from "../UniversityLogo";
 import Image from "next/image";
 import GenerateBriefingButton from "./GenerateBriefingButton";
-import Link from "next/link";
 
 interface HeaderProps {
     onNewIncidentClick: () => void;

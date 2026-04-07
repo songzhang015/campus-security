@@ -7,7 +7,7 @@ inquiries_bp = Blueprint("inquiries", __name__)
 @inquiries_bp.route("/", methods=["POST"])
 def create_inquiry():
     """
-    POST /api/public/inquiry
+    POST /api/inquiries/
     Expects: { "university": "...", "name": "...", "email": "..." }
     """
     try:

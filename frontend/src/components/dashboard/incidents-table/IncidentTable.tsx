@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { Incident, PaginationInfo } from "./types";
-import { Button } from "./button";
+import { Incident, PaginationInfo } from "../types";
+import { Button } from "../button";
 import {
     Sheet,
     SheetContent,

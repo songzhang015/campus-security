@@ -10,6 +10,9 @@ class IncidentsService:
         if not data.get("description") or not data.get("location"):
             raise ValueError("Description and location are required.")
 
+        # TODO:
+        # If you're reading this I'm too lazy to check for ID collisions, please don't sue me
+        # ;-;
         new_id = f"#{random.randint(100000, 999999)}"
 
         new_incident = {
@@ -32,20 +35,16 @@ class IncidentsService:
         return self.repo.create_incident(new_incident)
 
     def get_paginated_incidents(self, org_id, filters):
-        # 1. Base Query: Must belong to the requesting organization
         query = {"org_id": org_id}
 
-        # 2. Status Filter
         status = filters.get("status", "All")
         if status.upper() != "ALL":
             query["status"] = status.upper()
 
-        # 3. Priority Filter
         priority = filters.get("priority", "All")
         if priority.upper() != "ALL":
             query["priority"] = priority.upper()
 
-        # 4. Time Filter Math
         time_filter = filters.get("time", "Last 24h")
         now = datetime.now(timezone.utc)
         
@@ -56,18 +55,16 @@ class IncidentsService:
         elif time_filter == "Last 30 Days":
             query["created_at"] = {"$gte": (now - timedelta(days=30)).isoformat()}
 
-        # 5. Pagination Math
         try:
             page = int(filters.get("page", 1))
             limit = int(filters.get("limit", 10))
-            if limit not in [10, 20, 50]: # Prevent users from requesting a million rows
+            if limit not in [10, 20, 50]:
                 limit = 10
         except ValueError:
             page, limit = 1, 10
 
         skip = (page - 1) * limit
 
-        # Fetch data and total count
         incidents = self.repo.get_incidents(query, skip, limit)
         total_count = self.repo.count_incidents(query)
 
@@ -82,7 +79,6 @@ class IncidentsService:
         }
 
     def update_incident(self, object_id, org_id, data):
-        # Strip out immutable fields so users can't overwrite them
         update_data = {k: v for k, v in data.items() if k not in ["_id", "id", "org_id", "created_at"]}
         
         if not update_data:
@@ -105,7 +101,6 @@ class IncidentsService:
             "created_at": {"$gte": (now - timedelta(hours=hours)).isoformat()}
         }
         
-        # We set a high limit (e.g., 200) to ensure we get everything in that shift
         return self.repo.get_incidents(query, skip=0, limit=200)
    
     def delete_incident(self, incident_id, org_id):

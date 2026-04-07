@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Copy, Check, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import { Button } from "./button";
+import { Button } from "../button";
 
 interface ShiftBriefingModalProps {
     isOpen: boolean;

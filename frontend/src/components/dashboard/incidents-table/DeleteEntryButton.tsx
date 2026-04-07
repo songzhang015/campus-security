@@ -2,8 +2,8 @@
 
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "./button";
-import { resetDashboardCaches } from "./dashboardCache";
+import { Button } from "../button";
+import { resetDashboardCaches } from "../dashboardCache";
 
 interface DeleteEntryButtonProps {
     incidentId: string;

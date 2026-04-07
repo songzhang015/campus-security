@@ -9,7 +9,7 @@ class IncidentsRepository(Connection):
     def create_incident(self, incident_data):
             try:
                 result = self.incidents_collection.insert_one(incident_data)
-                # Add the mongo _id as a string to the dictionary before returning
+                # Add the mongo _id for frontend
                 incident_data["_id"] = str(result.inserted_id)
                 return incident_data
             except PyMongoError as e:
@@ -19,7 +19,7 @@ class IncidentsRepository(Connection):
         try:
             cursor = self.incidents_collection.find(query_filter).sort("created_at", -1).skip(skip).limit(limit)
             
-            # Clean up ObjectIds for JSON serialization
+            # Clean up ObjectIds for JSON
             incidents = []
             for doc in cursor:
                 doc["_id"] = str(doc["_id"])
@@ -30,7 +30,6 @@ class IncidentsRepository(Connection):
             raise RuntimeError(f"Database error fetching incidents: {str(e)}")
 
     def count_incidents(self, query_filter):
-        """Used to tell the frontend how many total pages there are."""
         try:
             return self.incidents_collection.count_documents(query_filter)
         except PyMongoError as e:
@@ -41,7 +40,7 @@ class IncidentsRepository(Connection):
             result = self.incidents_collection.find_one_and_update(
                 {"_id": ObjectId(object_id_str), "org_id": org_id},
                 {"$set": update_data},
-                return_document=True # Returns the updated document, not the old one
+                return_document=True
             )
             if result:
                 result["_id"] = str(result["_id"])

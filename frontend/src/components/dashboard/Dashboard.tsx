@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Header from "./Header";
-import StatCards from "./StatCards";
-import IncidentTable from "./IncidentTable";
-import NewIncidentModal from "./NewIncidentModal";
-import ShiftBriefingModal from "./ShiftBriefingModal";
+import Header from "./header/Header";
+import StatCards from "./stats/StatCards";
+import IncidentTable from "./incidents-table/IncidentTable";
+import NewIncidentModal from "./header/NewIncidentModal";
+import ShiftBriefingModal from "./header/ShiftBriefingModal";
 import {
     Incident,
     DashboardStats,
@@ -15,12 +15,6 @@ import {
 } from "./types";
 import SignOutButton from "./SignOutButton";
 import { incidentCache, statsCache, setStatsCache } from "./dashboardCache";
-
-interface CacheEntry {
-    incidents: Incident[];
-    pagination: { total: number; total_pages: number };
-    fetchedAt: number;
-}
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -111,7 +105,6 @@ export default function Dashboard() {
                     setTotalPages(pagination.total_pages);
                     setTotal(pagination.total);
 
-                    // Store in cache
                     incidentCache.set(cacheKey, {
                         incidents,
                         pagination,

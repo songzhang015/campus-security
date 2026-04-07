@@ -38,7 +38,9 @@ def get_incidents():
 @incidents_bp.route("/", methods=["POST"])
 @token_required
 def create_incident():
-    """POST /api/incidents"""
+    """
+    POST /api/incidents
+    """
     try:
         org_id = request.org_id
         data = request.get_json()
@@ -58,7 +60,9 @@ def create_incident():
 @incidents_bp.route("/<incident_id>", methods=["PATCH"])
 @token_required
 def update_incident(incident_id):
-    """PATCH /api/incidents/<incident_id>"""
+    """
+    PATCH /api/incidents/<incident_id>
+    """
     try:
         org_id = request.org_id
         data = request.get_json()
@@ -78,7 +82,9 @@ def update_incident(incident_id):
 @incidents_bp.route("/<incident_id>", methods=["DELETE"])
 @token_required
 def delete_incident(incident_id):
-    """DELETE /api/incidents/<incident_id>"""
+    """
+    DELETE /api/incidents/<incident_id>
+    """
     try:
         org_id = request.org_id
 

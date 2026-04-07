@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { PriorityLevel, IncidentType, IncidentCategory } from "./types";
+import { PriorityLevel, IncidentType, IncidentCategory } from "../types";
 import AutofillButton from "./AutofillButton";
 import DraftAlertButton from "./DraftAlertButton";
 import DraftAlertModal from "./DraftAlertModal";
 import Autocomplete from "react-google-autocomplete";
-import { Button } from "./button";
+import { Button } from "../button";
 
 interface NewIncidentModalProps {
     isOpen: boolean;

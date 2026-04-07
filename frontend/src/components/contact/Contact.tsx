@@ -35,6 +35,7 @@ export default function Contact() {
                 setErrorMessage(result.response || "Failed to send inquiry.");
             }
         } catch (err) {
+            console.log(err);
             setStatus("error");
             setErrorMessage("A network error occurred. Please try again.");
         }

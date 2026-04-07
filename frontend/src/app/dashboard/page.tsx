@@ -1,8 +1,8 @@
-import IntroAnimation from "@/src/components/dashboard/IntroAnimation";
-import Dashboard from "@/src/components/dashboard/Dashboard";
 import { getOrgAssets } from "@/src/lib/orgConfig";
 import { cookies } from "next/headers";
 import { jwtDecode } from "jwt-decode";
+import IntroAnimation from "@/src/components/dashboard/IntroAnimation";
+import Dashboard from "@/src/components/dashboard/Dashboard";
 
 interface SessionJwtPayload {
     org_id: string;

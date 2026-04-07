@@ -33,7 +33,7 @@ export async function PATCH(
         return NextResponse.json(data, { status: res.status });
     } catch {
         return NextResponse.json(
-            { success: false, response: "Internal server error." },
+            { response: "Internal server error." },
             { status: 500 },
         );
     }
@@ -69,7 +69,7 @@ export async function DELETE(
         return NextResponse.json(data, { status: res.status });
     } catch {
         return NextResponse.json(
-            { success: false, response: "Internal server error." },
+            { response: "Internal server error." },
             { status: 500 },
         );
     }

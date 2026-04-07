@@ -1,5 +1,4 @@
 from database.inquiries_repository import InquiriesRepository
-import random
 from datetime import date
 
 class InquiriesService:
