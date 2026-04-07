@@ -7,69 +7,69 @@ import Image from "next/image";
 import GenerateBriefingButton from "./GenerateBriefingButton";
 
 interface HeaderProps {
-	onNewIncidentClick: () => void;
-	onGenerateBriefingClick: () => void;
-	organizationName?: string;
+  onNewIncidentClick: () => void;
+  onGenerateBriefingClick: () => void;
+  organizationName?: string;
 }
 
 export default function Header({
-	onNewIncidentClick,
-	onGenerateBriefingClick,
-	organizationName = "Campus Security",
+  onNewIncidentClick,
+  onGenerateBriefingClick,
+  organizationName = "Campus Security",
 }: HeaderProps) {
-	const [currentTime, setCurrentTime] = useState<string>("");
+  const [currentTime, setCurrentTime] = useState<string>("");
 
-	useEffect(() => {
-		const updateTime = () => {
-			const now = new Date();
-			setCurrentTime(
-				now.toLocaleTimeString("en-US", {
-					hour: "numeric",
-					minute: "2-digit",
-					timeZoneName: "short",
-				}),
-			);
-		};
-		updateTime();
-		const interval = setInterval(updateTime, 1000);
-		return () => clearInterval(interval);
-	}, []);
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          timeZoneName: "short",
+        }),
+      );
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-	return (
-		<header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
-			<div className="flex-1 flex items-center gap-3">
-				<Image
-					src="/campus-security.png"
-					alt="Campus Security"
-					width={32}
-					height={32}
-				/>
-				<h1 className="text-xl font-bold tracking-widest text-[#1a237e]">
-					CAMPUS SECURITY
-				</h1>
-			</div>
+  return (
+    <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+      <div className="flex-1 flex items-center gap-3">
+        <Image
+          src="/campus-security.png"
+          alt="Campus Security"
+          width={32}
+          height={32}
+        />
+        <h1 className="text-xl font-bold tracking-widest text-[#1a237e]">
+          Campus Security
+        </h1>
+      </div>
 
-			<div className="flex-1 text-center font-medium text-slate-800 text-lg">
-				{currentTime || "Loading time..."}
-			</div>
+      <div className="flex-1 text-center font-medium text-slate-800 text-lg">
+        {currentTime || "Loading time..."}
+      </div>
 
-			<div className="flex-1 flex items-center justify-end gap-6">
-				<GenerateBriefingButton onClick={onGenerateBriefingClick} />
-				<button
-					onClick={onNewIncidentClick}
-					className="flex items-center gap-2 bg-[#1a237e] hover:bg-[#121858] text-white px-4 py-2.5 rounded-md text-sm font-medium transition-colors cursor-pointer"
-				>
-					<Plus size={18} />
-					New Incident
-				</button>
+      <div className="flex-1 flex items-center justify-end gap-6">
+        <GenerateBriefingButton onClick={onGenerateBriefingClick} />
+        <button
+          onClick={onNewIncidentClick}
+          className="flex items-center gap-2 bg-[#1a237e] hover:bg-[#121858] text-white px-4 py-2.5 rounded-md text-sm font-medium transition-colors cursor-pointer"
+        >
+          <Plus size={18} />
+          New Incident
+        </button>
 
-				<div className="flex items-center gap-3">
-					<span className="text-md font-medium text-slate-700">
-						{organizationName}
-					</span>
-					<UniversityLogo organizationName={organizationName} />
-				</div>
-			</div>
-		</header>
-	);
+        <div className="flex items-center gap-3">
+          <span className="text-md font-medium text-slate-700">
+            {organizationName}
+          </span>
+          <UniversityLogo organizationName={organizationName} />
+        </div>
+      </div>
+    </header>
+  );
 }
