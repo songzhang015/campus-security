@@ -76,15 +76,12 @@ export default function IntroAnimation({
         hasRun.current = true;
 
         (async () => {
-            // 1. Gray hold
             setPhase("gray");
             await sleep(T_GRAY_HOLD);
 
-            // 2. Fade to off-white
             setPhase("offwhite");
             await sleep(T_FADE_TO_OFFWHITE + 80);
 
-            // 3. Campus Security drops in sequentially
             setPhase("companyLetters");
             for (let i = 0; i < letters.length; i++) {
                 setVisible(i);
@@ -92,43 +89,34 @@ export default function IntroAnimation({
             }
             await sleep(T_AFTER_LETTERS);
 
-            // 4. Campus Security logo fades in
             setPhase("companyLogo");
             await sleep(T_LOGO_FADE + T_HOLD_INTRO);
 
-            // 5. Fade out Campus Security
             setPhase("swap");
             await sleep(T_SWAP_FADE);
 
-            // 6. Fade in University Logo + Name
             setPhase("univFadeIn");
             await sleep(T_SWAP_FADE + T_HOLD_INTRO);
 
-            // 7. Green line cuts top → bottom
             setPhase("cut");
             await sleep(T_CUT_DURATION);
 
-            // 8. Spread left + right from center
             setPhase("spread");
             setShowSpreadContent(true);
             await sleep(T_SPREAD_DURATION + 60);
 
-            // 9. Hold on alternate university logo + name
             setPhase("reveal");
             await sleep(T_HOLD_REVEAL);
 
-            // 10. Fade spread content out
             setShowSpreadContent(false);
             await sleep(T_SPREAD_CONTENT_FADE_OUT);
 
-            // 11. Fade "Welcome back!" in, hold, fade out
             setShowWelcome(true);
             setPhase("welcome");
             await sleep(T_WELCOME_FADE_IN + T_WELCOME_HOLD);
             setShowWelcome(false);
             await sleep(T_WELCOME_FADE_OUT + T_PAUSE_BEFORE_EXIT);
 
-            // 12. Reveal dashboard behind overlay, fade overlay out
             setPhase("exiting");
             await sleep(30);
             overlayControls.start({
@@ -140,7 +128,6 @@ export default function IntroAnimation({
             });
             await sleep(T_FINAL_FADE + 100);
 
-            // 13. Done — signal dashboard to fade in
             setPhase("done");
         })();
     }, [letters.length, overlayControls]);
@@ -164,10 +151,8 @@ export default function IntroAnimation({
         <div
             className={phase === "done" ? "relative" : "fixed inset-0 z-[9999]"}
         >
-            {/* Dashboard renders beneath everything once we're exiting */}
             <div className="absolute inset-0 z-0">{children}</div>
 
-            {/* ── Layer 10: Animated Background ─────────────────────────────── */}
             <AnimatePresence>
                 {isPreCut && (
                     <motion.div
@@ -187,7 +172,6 @@ export default function IntroAnimation({
                 )}
             </AnimatePresence>
 
-            {/* ── Layer 20: Green Cut Line ──────────────────────────────────── */}
             {phase === "cut" && (
                 <motion.div
                     initial={{ height: "0%" }}
@@ -206,7 +190,6 @@ export default function IntroAnimation({
                 />
             )}
 
-            {/* ── Layer 30: Pre-cut Logos & Text ────────────────────────────── */}
             <AnimatePresence>
                 {isPreCut && (
                     <motion.div
@@ -215,7 +198,6 @@ export default function IntroAnimation({
                         style={{ gap: "1.25rem" }}
                         exit={{ opacity: 0, transition: { duration: 0 } }}
                     >
-                        {/* ── Campus Security Intro ── */}
                         <motion.div
                             animate={{
                                 opacity:
@@ -279,7 +261,6 @@ export default function IntroAnimation({
                             </div>
                         </motion.div>
 
-                        {/* ── University Fade In ── */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{
@@ -320,7 +301,6 @@ export default function IntroAnimation({
                 )}
             </AnimatePresence>
 
-            {/* ── Layer 40: Spread Panel ────────────────────────────────────── */}
             {isSpread && (
                 <motion.div
                     initial={{
@@ -395,7 +375,6 @@ export default function IntroAnimation({
                 </motion.div>
             )}
 
-            {/* ── Layer 50: Exiting Fade ────────────────────────────────────── */}
             {phase === "exiting" && (
                 <motion.div
                     initial={{ opacity: 1 }}
