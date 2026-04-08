@@ -53,7 +53,7 @@ for i in range(120):
         "type": random.choice(TYPES),
         "category": random.choice(CATEGORIES),
         "location": random.choice(LOCATIONS),
-        "status": random.choice(STATUSES),
+        "status": "RESOLVED",
         "description": desc,
         "short_desc": desc[:40] + "...",
         "created_at": random_timestamp(),
